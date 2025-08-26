@@ -1,4 +1,4 @@
-# SISTEMA DE GERENCIAMENTO DE HOTEL
+# Sistema de Gestão Interna de Hotel
 ## 1. INTRODUÇÃO
 Este documento apresenta a proposta para o desenvolvimento de um sistema de gerenciamento de hotel, pensado especialmente para facilitar o dia a dia de quem trabalha com hospedagem. A ideia é criar uma ferramenta simples, intuitiva e eficiente, que automatize as principais tarefas administrativas, como controle de reservas, cadastros de hóspedes e quartos, além do registro de entradas e saídas dos clientes.
 
