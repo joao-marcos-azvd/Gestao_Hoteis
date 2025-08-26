@@ -16,7 +16,7 @@ A proposta é desenvolver um sistema web, acessível de qualquer lugar, com uma 
 Permite que os administradores registrem todos os dados dos hóspedes: nome completo, CPF, telefone, e-mail, endereço e observações importantes (Desejavel).
 
 ### 5.2 Cadastro de Quartos
-Os quartos do hotel podem ser cadastrados com todas as informações relevantes: número, tipo (Solteiro, Casal e VIP), preço da diária, status (disponível, ocupado, manutenção) e recursos extras, como Café da manhã, TV, serviço de quarto, etc.
+Os quartos do hotel podem ser cadastrados com todas as informações relevantes: número, tipo (Standard/básico, Executivo/Superior, Suíte/VIP), preço da diária, status (disponível, ocupado, manutenção) e recursos extras, como Café da manhã, TV, serviço de quarto, etc.
 
 ### 5.3 Controle de Reservas/Check-in e Check-out
 Facilita a criação e o gerenciamento de reservas, associando hóspedes a quartos, com datas de entrada e saída, status e observações gerais (Desejavel).
