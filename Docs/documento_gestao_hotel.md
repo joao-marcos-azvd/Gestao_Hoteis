@@ -9,7 +9,7 @@ Nosso objetivo é desenvolver uma solução prática e acessível para ajudar ho
 O sistema foi pensado para ser utilizado principalmente pelos administradores do hotel. Esses profissionais terão acesso completo a todas as funcionalidades e relatórios, podendo gerenciar reservas, hóspedes e quartos. O sistema centraliza a gestão em um único ambiente digital, ideal para hotéis em que o próprio administrador realiza as tarefas de recepção e atendimento.
 
 ## 4. VISÃO GERAL DO SISTEMA
-A proposta é desenvolver um sistema web, acessível de qualquer lugar, com uma interface amigável. O backend será feito em Python com FastAPI e utilizará SQLModel para o banco de dados. O frontend será desenvolvido em ReactJS, garantindo uma experiência rápida e responsiva.
+A proposta é desenvolver um sistema web, acessível de qualquer lugar, com uma interface amigável. O backend será feito em Python com FastAPI e utilizará SQLModel para o banco de dados. O frontend será desenvolvido em HTML, CSS e JavaScript, garantindo uma experiência rápida e responsiva.
 
 ## 5. FUNCIONALIDADES
 ### 5.1 Cadastro de Hóspedes
