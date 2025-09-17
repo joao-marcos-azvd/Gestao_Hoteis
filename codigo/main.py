@@ -1,14 +1,38 @@
-from fastapi import FastAPI, HTTPException
-from sqlmodel import SQLModel, create_engine, Session, select
-from typing import List
-from datetime import datetime
-
-# Importa os modelos
-from models import Usuario, Hospede, Quarto, Reserva, CheckIn, CheckOut
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlmodel import SQLModel, Session, create_engine, select
+from passlib.context import CryptContext
+from datetime import datetime, timedelta
+from typing import Optional
+import jwt
+from models import Usuario, Hospede, Quarto, Reserva, CheckIn, CheckOut, Token, UsuarioCreate
 
 # Configuração do banco (SQLite local por enquanto)
 DATABASE_URL = "sqlite:///hotel.db"
 engine = create_engine(DATABASE_URL, echo=True)
+
+SECRET_KEY = "segredo_secreto"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+def get_password_hash(password: str):
+    return pwd_context.hash(password)
+
+def verify_password(plain: str, hashed: str):
+    return pwd_context.verify(plain, hashed)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 # Inicializa app FastAPI
 app = FastAPI(title="Sistema de Gestão Interna de Hotel")
@@ -25,30 +49,42 @@ def on_startup():
 # ----------------------------
 # ROTAS USUÁRIOS
 # ----------------------------
-@app.post("/usuarios/", response_model=Usuario)
-def criar_usuario(usuario: Usuario):
-    with Session(engine) as session:
-        session.add(usuario)
-        session.commit()
-        session.refresh(usuario)
-        return usuario
+@app.post("/login", response_model=Token)
+def register(user: UsuarioCreate, session: Session = Depends(get_session)):
+    query = select(Usuario).where(Usuario.email == user.email)
+    db_user = session.exec(query).first
+    if db_user:
+        raise HTTPException(status_code=400, detail="email já cadastrado")
+    
+    hashed_pw = get_password_hash(user.senha)
+    new_user = Usuario(nome=user.nome, email=user.email, senha=hashed_pw)
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)
+    return {"msg": "Usuário criado com sucesso"}
 
-@app.get("/usuarios/{id}", response_model=Usuario)
-def buscar_usuario(id: int):
-    with Session(engine) as session:
-        usuario = session.get(Usuario, id)
-        if not usuario:
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
-        return usuario
+@app.post("/login", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+    query = select(Usuario).where(Usuario.email == form_data.username)
+    user = session.exec(query).first()
 
-@app.post("/usuarios/login")
-def login(email: str, senha: str):
-    with Session(engine) as session:
-        query = select(Usuario).where(Usuario.email == email, Usuario.senha == senha)
-        usuario = session.exec(query).first()
-        if not usuario:
-            raise HTTPException(status_code=401, detail="Credenciais inválidas")
-        return {"message": f"Bem-vindo {usuario.nome}!"}
+    if not user or not verify_password(form_data.password, user.senha):
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+
+    access_token = create_access_token(
+        data={"sub": user.email},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/me")
+def read_me(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        return {"email": email}
+    except:
+        raise HTTPException(status_code=401, detail="Token inválido")
 
 # ----------------------------
 # ROTAS HÓSPEDES

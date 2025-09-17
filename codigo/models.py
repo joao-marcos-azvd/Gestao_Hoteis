@@ -1,6 +1,9 @@
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Session, create_engine, select
 from typing import Optional, List
 from datetime import datetime
+
+
+
 
 # Usuário do sistema
 class Usuario(SQLModel, table=True):
@@ -8,6 +11,16 @@ class Usuario(SQLModel, table=True):
     nome: str
     email: str
     senha: str   # será criptografada
+
+# Schemas auxiliares
+class UsuarioCreate(SQLModel):
+    nome: str
+    email: str
+    senha: str
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str
 
 # Hóspede
 class Hospede(SQLModel, table=True):
