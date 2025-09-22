@@ -1,21 +1,30 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import FastAPI, Depends, HTTPException, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import SQLModel, Session, create_engine, select
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from typing import Optional
 import jwt
-from models import Usuario, Hospede, Quarto, Reserva, CheckIn, CheckOut, Token, UsuarioCreate
+from models import Usuario
 
-# Configuração do banco (SQLite local por enquanto)
+# Configuração banco
 DATABASE_URL = "sqlite:///hotel.db"
 engine = create_engine(DATABASE_URL, echo=True)
-
 SECRET_KEY = "segredo_secreto"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+# FastAPI
+app = FastAPI(title="Sistema de Gestão Interna de Hotel")
+
+# Configurar arquivos estáticos e templates
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 def get_session():
     with Session(engine) as session:
@@ -33,58 +42,56 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-
-# Inicializa app FastAPI
-app = FastAPI(title="Sistema de Gestão Interna de Hotel")
-
-# Criação das tabelas no banco
+# Criar tabelas
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-# Evento de inicialização
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
 
 # ----------------------------
-# ROTAS USUÁRIOS
+# Rotas HTML
 # ----------------------------
-@app.post("/login", response_model=Token)
-def register(user: UsuarioCreate, session: Session = Depends(get_session)):
-    query = select(Usuario).where(Usuario.email == user.email)
-    db_user = session.exec(query).first
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/register", response_class=HTMLResponse)
+def register_form(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+@app.post("/register", response_class=HTMLResponse)
+def register(request: Request, nome: str = Form(...), email: str = Form(...), senha: str = Form(...), session: Session = Depends(get_session)):
+    query = select(Usuario).where(Usuario.email == email)
+    db_user = session.exec(query).first()
     if db_user:
-        raise HTTPException(status_code=400, detail="email já cadastrado")
-    
-    hashed_pw = get_password_hash(user.senha)
-    new_user = Usuario(nome=user.nome, email=user.email, senha=hashed_pw)
+        return templates.TemplateResponse("register.html", {"request": request, "msg": "⚠️ Email já cadastrado"})
+
+    hashed_pw = get_password_hash(senha)
+    new_user = Usuario(nome=nome, email=email, senha=hashed_pw)
     session.add(new_user)
     session.commit()
-    session.refresh(new_user)
-    return {"msg": "Usuário criado com sucesso"}
+    return templates.TemplateResponse("login.html", {"request": request, "msg": "✅ Usuário criado com sucesso! Faça login."})
 
-@app.post("/login", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
-    query = select(Usuario).where(Usuario.email == form_data.username)
+@app.post("/login", response_class=HTMLResponse)
+def login(request: Request, email: str = Form(...), senha: str = Form(...), session: Session = Depends(get_session)):
+    query = select(Usuario).where(Usuario.email == email)
     user = session.exec(query).first()
 
-    if not user or not verify_password(form_data.password, user.senha):
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    if not user or not verify_password(senha, user.senha):
+        return templates.TemplateResponse("login.html", {"request": request, "msg": "❌ Credenciais inválidas"})
 
     access_token = create_access_token(
         data={"sub": user.email},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/me")
-def read_me(token: str = Depends(oauth2_scheme)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
-        return {"email": email}
-    except:
-        raise HTTPException(status_code=401, detail="Token inválido")
+    return templates.TemplateResponse("base.html", {"request": request, "msg": f"🎉 Bem-vindo {user.nome}!", "token": access_token})
+
+
+'''
+
 
 # ----------------------------
 # ROTAS HÓSPEDES
@@ -254,3 +261,5 @@ def realizar_checkout(reserva_id: int, forma_pagamento: str, valor_total: float)
 @app.get("/")
 def root():
     return {"message": "Sistema de Gestão Interna de Hotel - Backend Ativo 🚀"}
+
+'''

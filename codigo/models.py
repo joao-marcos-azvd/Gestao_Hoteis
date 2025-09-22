@@ -1,8 +1,6 @@
-from sqlmodel import SQLModel, Session, create_engine, select
+from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
-
-
 
 
 # Usuário do sistema
