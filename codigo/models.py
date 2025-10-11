@@ -35,6 +35,7 @@ class Hospede(SQLModel, table=True):
 class Quarto(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     numero: int
+    capacidade: int
     tipo: str   # Standard, Executivo, Suíte
     preco_diaria: float
     status: str # disponível, ocupado, manutenção
