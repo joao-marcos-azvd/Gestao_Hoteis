@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
-from datetime import timedelta
+from sqlmodel import Session, select, create_engine
+from datetime import datetime, timedelta
 from passlib.context import CryptContext
 import jwt
 from models import Usuario
-from sqlmodel import create_engine
 
 SECRET_KEY = "segredo_secreto"
 ALGORITHM = "HS256"
@@ -25,9 +24,10 @@ def hash_password(password: str):
 def verify_password(plain: str, hashed: str):
     return pwd_context.verify(plain, hashed)
 
-def create_access_token(data: dict):
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
     to_encode = data.copy()
-    to_encode.update({"exp": timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)})
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 @router.post("/register")

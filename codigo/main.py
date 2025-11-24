@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, create_engine
-from routers import usuarios, hospedes, quartos, reservas
+from routers import usuarios, hospedes, quartos, reserva
 
 DATABASE_URL = "sqlite:///hotel.db"
 engine = create_engine(DATABASE_URL, echo=True)
@@ -25,7 +25,7 @@ def on_startup():
 app.include_router(usuarios.router)
 app.include_router(hospedes.router)
 app.include_router(quartos.router)
-app.include_router(reservas.router)
+app.include_router(reserva.router)
 
 @app.get("/")
 def home():

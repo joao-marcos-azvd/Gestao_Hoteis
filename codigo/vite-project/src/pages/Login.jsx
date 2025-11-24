@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import "./styles/Login.css"; // importa o CSS
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,11 +14,10 @@ export default function Login() {
     e.preventDefault();
     try {
       const resp = await api.post("/usuarios/login", null, {
-        params: { email, senha } // o backend espera query params neste projeto
+        params: { email, senha }
       });
       const token = resp.data.access_token;
       localStorage.setItem("token", token);
-      // opcional: salvar dados do usuário
       localStorage.setItem("user", JSON.stringify(resp.data.user));
       nav("/");
     } catch (err) {
@@ -26,19 +26,29 @@ export default function Login() {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: "2rem auto" }}>
+    <div className="login-container">
       <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email</label><br/>
-          <input value={email} onChange={e=>setEmail(e.target.value)} />
+      <form onSubmit={handleSubmit} className="login-form">
+        <div className="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
         </div>
-        <div>
-          <label>Senha</label><br/>
-          <input type="password" value={senha} onChange={e=>setSenha(e.target.value)} />
+        <div className="form-group">
+          <label>Senha</label>
+          <input
+            type="password"
+            value={senha}
+            onChange={e => setSenha(e.target.value)}
+            required
+          />
         </div>
-        <button type="submit">Entrar</button>
-        {error && <p style={{color:"red"}}>{error}</p>}
+        <button type="submit" className="login-button">Entrar</button>
+        {error && <p className="error-message">{error}</p>}
       </form>
     </div>
   );
