@@ -45,41 +45,6 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/auth.py`:
 ```py
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from sqlmodel import Session, select, create_engine
-import jwt
-from models import Usuario
-
-SECRET_KEY = "segredo_secreto"
-ALGORITHM = "HS256"
-
-# Ponto padrão onde o frontend envia o token
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/usuarios/login")
-
-DATABASE_URL = "sqlite:///hotel.db"
-engine = create_engine(DATABASE_URL)
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Token inválido")
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expirado")
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Token inválido")
-
-    user = session.exec(select(Usuario).where(Usuario.email == email)).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="Usuário não encontrado")
-
-    return user
 
 ```
 
@@ -87,375 +52,27 @@ def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Dep
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/hospedes.py`:
 ```py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select, create_engine
-from models import Hospede
-from auth import get_current_user  # protege as rotas com JWT
 
-DATABASE_URL = "sqlite:///hotel.db"
-engine = create_engine(DATABASE_URL)
-
-router = APIRouter(prefix="/hospede", tags=["Hospede"])
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-#Listar hospedes
-@router.get("/hoespedes")
-def listar_hospedes(status: str = None, session: Session = Depends(get_session)):
-    query = select(Hospede)
-    hospedes = session.exec(query).all()
-    return hospedes
-
-#  Criar um novo hospedes
-@router.post("/")
-def criar_hospede(
-    hospede: Hospede,
-    session: Session = Depends(get_session),
-    user=Depends(get_current_user)
-):
-    existente = session.exec(select(Hospede). where(Hospede.numero == hospede.numero))
-    if existente:
-        raise HTTPException(status_code=400, detail="CPF do Hóspede já cadastrado.")
-    session.add(hospede)
-    session.commit()
-    session.refresh(hospede)
-    return hospede
-
-#  Atualizar hospede
-@router.put("/{hospede_id}")
-def editar_hospede(
-    hospede_id: int,
-    dados: Hospede,
-    session: Session = Depends(get_session),
-    user=Depends(get_current_user)
-):
-    hospede = session.get(Hospede, hospede_id)
-    if not hospede:
-        raise HTTPException(status_code=404, detail="hospede não encontrado")
-
-    hospede.nome = dados.nome
-    hospede.cpf = dados.cpf
-    hospede.telefone = dados.telefone
-    hospede.email = dados.email
-    hospede.endereco = dados.endereco
-
-    session.add(hospede)
-    session.commit()
-    session.refresh(hospede)
-    return hospede
-
-# Excluir hospede
-@router.delete("/{hospede_id}")
-def deletar_hospede(
-    hospede_id: int, session: Session = Depends(get_session), user=Depends(get_current_user)
-):
-    hospede = session.get(Hospede, hospede_id)
-    if not hospede:
-        raise HTTPException(status_code=404, detail="hospede não encontrado")
-
-    session.delete(hospede)
-    session.commit()
-    return {"message": "hospede removido com sucesso!"}
-
-#visualizar hóspedes
-@router.get("/{hospede_id}")
-def visualizar_hospede(
-    hospede_id: int, session: Session = Depends(get_session), user = Depends(get_current_user)
-):
-    hospede = session.get(Hospede, hospede_id)
-    if not hospede:
-        raise HTTPException(status_code=404, detail="hospede não encontrado")
-    return hospede
 ```
 
 ---
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/quartos.py`:
 ```py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select, create_engine
-from models import Quarto
-from auth import get_current_user  # protege as rotas com JWT
 
-DATABASE_URL = "sqlite:///hotel.db"
-engine = create_engine(DATABASE_URL)
-
-router = APIRouter(prefix="/quartos", tags=["Quartos"])
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-# Listar quartos com filtro
-@router.get("/quartos")
-def listar_quartos(status: str = None, session: Session = Depends(get_session)):
-    query = select(Quarto)
-    if status:
-        query = query.where(Quarto.status == status)
-    quartos = session.exec(query).all()
-    return quartos
-
-#  Criar um novo quarto
-@router.post("/")
-def criar_quarto(
-    quarto: Quarto,
-    session: Session = Depends(get_session),
-    user=Depends(get_current_user)
-):
-    existente = session.exec(select(Quarto). where(Quarto.numero == quarto.numero))
-    if existente:
-        raise HTTPException(status_code=400, detail="numero do quaro já cadastrado.")
-    session.add(quarto)
-    session.commit()
-    session.refresh(quarto)
-    return quarto
-
-
-#  Atualizar quarto
-@router.put("/{quarto_id}")
-def editar_quarto(
-    quarto_id: int,
-    dados: Quarto,
-    session: Session = Depends(get_session),
-    user=Depends(get_current_user)
-):
-    quarto = session.get(Quarto, quarto_id)
-    if not quarto:
-        raise HTTPException(status_code=404, detail="Quarto não encontrado")
-
-    quarto.numero = dados.numero
-    quarto.tipo = dados.tipo
-    quarto.preco_diaria = dados.preco_diaria
-    quarto.recursos = dados.recursos
-
-    session.add(quarto)
-    session.commit()
-    session.refresh(quarto)
-    return quarto
-
-# Excluir quarto
-@router.delete("/{quarto_id}")
-def deletar_quarto(
-    quarto_id: int,
-    session: Session = Depends(get_session),
-    user=Depends(get_current_user)
-):
-    quarto = session.get(Quarto, quarto_id)
-    if not quarto:
-        raise HTTPException(status_code=404, detail="Quarto não encontrado")
-
-    session.delete(quarto)
-    session.commit()
-    return {"message": "Quarto removido com sucesso!"}
 ```
 
 ---
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/reserva.py`:
 ```py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select, create_engine
-from models import Reserva, hospede, Quarto
-import datetime
-from auth import get_current_user  # protege as rotas com JWT
 
-DATABASE_URL = "sqlite:///hotel.db"
-engine = create_engine(DATABASE_URL)
-
-router = APIRouter(prefix="/reserva", tags=["Reserva"])
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-@router.get("/reserva")
-def listar_reservas_proximas(status: str = None, session: Session = Depends(get_session)):
-    hoje = datetime.now()
-    limite = hoje + datetime.timedelta(days=5)
-    
-    query = select(Reserva).where(
-        Reserva.data_entrada >= hoje,
-        Reserva.data_entrada <= limite
-    )
-
-    reservas = session.exec(query).all()
-    return reservas
-
-
-@router.post("/")
-def criar_reserva(
-    reserva: Reserva,
-    session: Session = Depends(get_session),
-    user=Depends(get_current_user)
-):
-    # Verifica se o hóspede existe
-    hospede = session.get(Hospede, reserva.hospede_id)
-    if not hospede:
-        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
-
-    # Busca o quarto
-    quarto = session.get(Quarto, reserva.quarto_id)
-    if not quarto:
-        raise HTTPException(status_code=404, detail="Quarto não encontrado")
-
-    # Verifica se o quarto está ocupado
-    if quarto.status == "ocupado":
-        raise HTTPException(status_code=400, detail="Quarto já está ocupado")
-
-    # Cria a reserva
-    reserva.data_entrada = datetime.now() if not reserva.data_entrada else reserva.data_entrada
-    session.add(reserva)
-
-    # Atualiza o status do quarto
-    quarto.status = "ocupado"
-    session.add(quarto)
-
-    session.commit()
-    session.refresh(reserva)
-
-    return {"msg": "Reserva criada com sucesso", "reserva": reserva}
-
-@router.post("/{reserva_id}")
-def realizar_checkin(
-    reserva_id: int,
-    session: Session = Depends(get_session),
-    user=Depends(get_current_user)
-):
-    # Verifica se a reserva existe
-    reserva = session.get(Reserva, reserva_id)
-    if not reserva:
-        raise HTTPException(status_code=404, detail="Reserva não encontrada")
-
-    # Busca o quarto
-    quarto = session.get(Quarto, reserva.quarto_id)
-    if not quarto:
-        raise HTTPException(status_code=404, detail="Quarto não encontrado")
-
-    # Se o quarto já estiver ocupado
-    if quarto.status == "ocupado":
-        raise HTTPException(status_code=400, detail="Quarto já está ocupado")
-
-    # Cria o check-in
-    checkin = CheckIn(reserva_id=reserva.id, data_hora=datetime.now())
-    session.add(checkin)
-
-    # Atualiza status do quarto
-    quarto.status = "ocupado"
-    session.add(quarto)
-
-    # Atualiza status da reserva
-    reserva.status = "em andamento"
-    session.add(reserva)
-
-    session.commit()
-    session.refresh(checkin)
-
-    return {"msg": "Check-in realizado com sucesso!", "checkin": checkin}
-
-@router.post("/{reserva_id}")
-def realizar_checkout(
-    reserva_id: int,
-    valor_total: float,
-    forma_pagamento: str,
-    session: Session = Depends(get_session),
-    user=Depends(get_current_user)
-):
-    # Verifica se a reserva existe
-    reserva = session.get(Reserva, reserva_id)
-    if not reserva:
-        raise HTTPException(status_code=404, detail="Reserva não encontrada")
-
-    # Busca o quarto
-    quarto = session.get(Quarto, reserva.quarto_id)
-    if not quarto:
-        raise HTTPException(status_code=404, detail="Quarto não encontrado")
-
-    # Verifica se o quarto já está disponível (ou seja, check-out já feito)
-    if quarto.status == "disponível":
-        raise HTTPException(status_code=400, detail="Este quarto já foi liberado")
-
-    # Cria o check-out
-    checkout = CheckOut(
-        reserva_id=reserva.id,
-        data_hora=datetime.now(),
-        valor_total=valor_total,
-        forma_pagamento=forma_pagamento
-    )
-    session.add(checkout)
-
-    # Atualiza status do quarto e da reserva
-    quarto.status = "disponível"
-    reserva.status = "finalizada"
-    session.add(quarto)
-    session.add(reserva)
-
-    # Salva tudo
-    session.commit()
-    session.refresh(checkout)
-
-    return {"msg": "Check-out realizado com sucesso!", "checkout": checkout}
 ```
 
 ---
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/usuarios.py`:
 ```py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
-from datetime import timedelta
-from passlib.context import CryptContext
-import jwt
-from models import Usuario
-from sqlmodel import create_engine
-
-SECRET_KEY = "segredo_secreto"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-DATABASE_URL = "sqlite:///hotel.db"
-engine = create_engine(DATABASE_URL)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-router = APIRouter(prefix="/usuarios", tags=["Usuários"])
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-def hash_password(password: str):
-    return pwd_context.hash(password)
-
-def verify_password(plain: str, hashed: str):
-    return pwd_context.verify(plain, hashed)
-
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    to_encode.update({"exp": timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-@router.post("/register")
-def register(usuario: Usuario, session: Session = Depends(get_session)):
-    query = select(Usuario).where(Usuario.email == usuario.email)
-    existing = session.exec(query).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Email já cadastrado")
-
-    usuario.senha = hash_password(usuario.senha)
-    session.add(usuario)
-    session.commit()
-    session.refresh(usuario)
-    return {"message": "Usuário criado com sucesso!", "usuario": usuario}
-
-@router.post("/login")
-def login(email: str, senha: str, session: Session = Depends(get_session)):
-    query = select(Usuario).where(Usuario.email == email)
-    user = session.exec(query).first()
-    if not user or not verify_password(senha, user.senha):
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
-
-    token = create_access_token({"sub": user.email})
-    return {"access_token": token, "user": {"id": user.id, "nome": user.nome, "email": user.email}}
 
 ```
 
@@ -463,14 +80,6 @@ def login(email: str, senha: str, session: Session = Depends(get_session)):
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/components/ProtectedRoute.jsx`:
 ```jsx
-// src/components/ProtectedRoute.jsx
-import { Navigate } from "react-router-dom";
-
-export default function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/login" replace />;
-  return children;
-}
 
 ```
 
@@ -478,157 +87,6 @@ export default function ProtectedRoute({ children }) {
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/Dashboard.jsx`:
 ```jsx
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import api from "../services/api";
-
-// Dashboard.jsx
-// Coloque este arquivo em: frontend/src/pages/Dashboard.jsx
-// Dependências esperadas: api (src/services/api.js), react-router-dom, Tailwind (recommended)
-
-export default function Dashboard() {
-  const [loading, setLoading] = useState(true);
-  const [counts, setCounts] = useState({ quartos: 0, hospedes: 0, reservas: 0 });
-  const [recentReservas, setRecentReservas] = useState([]);
-  const [error, setError] = useState(null);
-  const nav = useNavigate();
-
-  const user = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("user")) || null;
-    } catch (e) {
-      return null;
-    }
-  })();
-
-  useEffect(() => {
-    let mounted = true;
-    async function fetchAll() {
-      setLoading(true);
-      setError(null);
-      try {
-        // buscar listas (os endpoints podem variar conforme seu backend)
-        const [qRes, hRes, rRes] = await Promise.all([
-          api.get("/quartos/quartos"),
-          api.get("/hospedes/hospedes"),
-          api.get("/reservas/reservas"),
-        ]);
-
-        if (!mounted) return;
-
-        const quartosList = Array.isArray(qRes.data) ? qRes.data : [];
-        const hospedesList = Array.isArray(hRes.data) ? hRes.data : [];
-        const reservasList = Array.isArray(rRes.data) ? rRes.data : [];
-
-        setCounts({ quartos: quartosList.length, hospedes: hospedesList.length, reservas: reservasList.length });
-
-        // ordenar reservas por data (se existir campo data_checkin / created_at)
-        const sorted = reservasList.slice().sort((a, b) => {
-          const da = new Date(a.data_checkin || a.data || a.created_at || a.id || 0);
-          const db = new Date(b.data_checkin || b.data || b.created_at || b.id || 0);
-          return db - da;
-        });
-
-        setRecentReservas(sorted.slice(0, 5));
-      } catch (err) {
-        console.error(err);
-        setError(err.response?.data?.detail || err.message || "Erro ao carregar dados");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-    fetchAll();
-    return () => (mounted = false);
-  }, []);
-
-  function handleLogout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    nav("/login");
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <header className="max-w-6xl mx-auto flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-extrabold">Painel de Controle</h1>
-          <p className="text-sm text-gray-600">Bem-vindo{user?.nome ? `, ${user.nome}` : ""} — visão geral rápida</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link to="/quartos" className="px-3 py-2 bg-white rounded-lg shadow-sm text-sm">Ver Quartos</Link>
-          <button onClick={handleLogout} className="px-3 py-2 bg-red-500 text-white rounded-lg text-sm">Sair</button>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto">
-        {loading ? (
-          <div className="text-center py-10">Carregando dados...</div>
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded">{error}</div>
-        ) : (
-          <>
-            <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="p-4 bg-white rounded-2xl shadow flex flex-col">
-                <span className="text-sm uppercase text-gray-500">Quartos</span>
-                <span className="text-3xl font-bold mt-2">{counts.quartos}</span>
-                <p className="text-xs text-gray-500 mt-2">Total de quartos cadastrados</p>
-                <div className="mt-4">
-                  <Link to="/quartos" className="text-sm underline">Gerenciar quartos →</Link>
-                </div>
-              </div>
-
-              <div className="p-4 bg-white rounded-2xl shadow flex flex-col">
-                <span className="text-sm uppercase text-gray-500">Hóspedes</span>
-                <span className="text-3xl font-bold mt-2">{counts.hospedes}</span>
-                <p className="text-xs text-gray-500 mt-2">Total de hóspedes cadastrados</p>
-                <div className="mt-4">
-                  <Link to="/hospedes" className="text-sm underline">Gerenciar hóspedes →</Link>
-                </div>
-              </div>
-
-              <div className="p-4 bg-white rounded-2xl shadow flex flex-col">
-                <span className="text-sm uppercase text-gray-500">Reservas</span>
-                <span className="text-3xl font-bold mt-2">{counts.reservas}</span>
-                <p className="text-xs text-gray-500 mt-2">Reservas ativas / criadas</p>
-                <div className="mt-4">
-                  <Link to="/reservas" className="text-sm underline">Gerenciar reservas →</Link>
-                </div>
-              </div>
-            </section>
-
-            <section className="bg-white rounded-2xl shadow p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold">Reservas recentes</h2>
-                <Link to="/reservas" className="text-sm underline">Ver todas</Link>
-              </div>
-
-              {recentReservas.length === 0 ? (
-                <div className="text-gray-500">Nenhuma reserva encontrada.</div>
-              ) : (
-                <div className="space-y-3">
-                  {recentReservas.map((r) => (
-                    <div key={r.id || `${r.hospede_id}-${r.quarto_id}-${Math.random()}`} className="p-3 border rounded-lg flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{r.hospede_nome || r.hospede || `Hóspede #${r.hospede_id || "-"}`}</div>
-                        <div className="text-sm text-gray-500">Quarto: {r.quarto_numero || r.quarto || r.quarto_id || "—"}</div>
-                      </div>
-                      <div className="text-right text-sm text-gray-500">
-                        <div>{(r.data_checkin || r.data || r.created_at) ? new Date(r.data_checkin || r.data || r.created_at).toLocaleString() : "—"}</div>
-                        <div className="mt-1">Status: {r.status || r.estado || "—"}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          </>
-        )}
-
-        <footer className="text-xs text-gray-400 text-center mt-8">Sistema - painel rápido. Ajuste endpoints em <code>src/services/api.js</code> se necessário.</footer>
-      </main>
-    </div>
-  );
-}
 
 ```
 
@@ -636,21 +94,6 @@ export default function Dashboard() {
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/HospedesList.jsx`:
 ```jsx
-import React, { useEffect, useState } from "react";
-import api from "../services/api";
-
-export default function HospedesList() {
-  const [hospedes, setHospedes] = useState([]);
-  useEffect(()=> {
-    api.get("/hospedes/hospedes").then(r=> setHospedes(r.data)).catch(()=> setHospedes([]));
-  }, []);
-  return (
-    <div style={{maxWidth:900, margin:"2rem auto"}}>
-      <h2>Hóspedes</h2>
-      <ul>{hospedes.map(h=> <li key={h.id}>{h.nome || h.id} - {h.email || "-"}</li>)}</ul>
-    </div>
-  );
-}
 
 ```
 
@@ -658,51 +101,6 @@ export default function HospedesList() {
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/Login.jsx`:
 ```jsx
-// src/pages/Login.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "../services/api";
-
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [error, setError] = useState(null);
-  const nav = useNavigate();
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    try {
-      const resp = await api.post("/usuarios/login", null, {
-        params: { email, senha } // o backend espera query params neste projeto
-      });
-      const token = resp.data.access_token;
-      localStorage.setItem("token", token);
-      // opcional: salvar dados do usuário
-      localStorage.setItem("user", JSON.stringify(resp.data.user));
-      nav("/");
-    } catch (err) {
-      setError(err.response?.data?.detail || "Erro ao logar");
-    }
-  }
-
-  return (
-    <div style={{ maxWidth: 420, margin: "2rem auto" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email</label><br/>
-          <input value={email} onChange={e=>setEmail(e.target.value)} />
-        </div>
-        <div>
-          <label>Senha</label><br/>
-          <input type="password" value={senha} onChange={e=>setSenha(e.target.value)} />
-        </div>
-        <button type="submit">Entrar</button>
-        {error && <p style={{color:"red"}}>{error}</p>}
-      </form>
-    </div>
-  );
-}
 
 ```
 
@@ -710,21 +108,6 @@ export default function Login() {
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/QuartosList.jsx`:
 ```jsx
-import React, { useEffect, useState } from "react";
-import api from "../services/api";
-
-export default function QuartosList() {
-  const [quartos, setQuartos] = useState([]);
-  useEffect(()=> {
-    api.get("/quartos/quartos").then(r=> setQuartos(r.data)).catch(()=> setQuartos([]));
-  }, []);
-  return (
-    <div style={{maxWidth:900, margin:"2rem auto"}}>
-      <h2>Quartos</h2>
-      <ul>{quartos.map(q=> <li key={q.id}>{q.numero || q.id} - {q.descricao || "-"}</li>)}</ul>
-    </div>
-  );
-}
 
 ```
 
@@ -732,21 +115,6 @@ export default function QuartosList() {
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/ReservasList.jsx`:
 ```jsx
-import React, { useEffect, useState } from "react";
-import api from "../services/api";
-
-export default function ReservasList() {
-  const [reservas, setReservas] = useState([]);
-  useEffect(()=> {
-    api.get("/reservas/reservas").then(r=> setReservas(r.data)).catch(()=> setReservas([]));
-  }, []);
-  return (
-    <div style={{maxWidth:900, margin:"2rem auto"}}>
-      <h2>Reservas</h2>
-      <ul>{reservas.map(r=> <li key={r.id}>{r.hospede_nome || r.hospede_id} — {r.quarto_numero || r.quarto_id}</li>)}</ul>
-    </div>
-  );
-}
 
 ```
 
@@ -754,21 +122,6 @@ export default function ReservasList() {
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/services/api.js`:
 ```js
-// src/services/api.js
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "http://localhost:8000", // ajuste se seu FastAPI roda em outra porta
-});
-
-// Interceptor para adicionar token automaticamente (se existir)
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-export default api;
 
 ```
 
@@ -776,48 +129,6 @@ export default api;
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/App.css`:
 ```css
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
 
 ```
 
@@ -825,30 +136,6 @@ export default api;
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/App.jsx`:
 ```jsx
-import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import QuartosList from "./pages/Quartoslist";
-import HospedesList from "./pages/HospedesList";
-import ReservasList from "./pages/ReservasList";
-import ProtectedRoute from "./components/ProtectedRoute";
-
-export default function App() {
-  return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/quartos" element={<ProtectedRoute><QuartosList /></ProtectedRoute>} />
-      <Route path="/hospedes" element={<ProtectedRoute><HospedesList /></ProtectedRoute>} />
-      <Route path="/reservas" element={<ProtectedRoute><ReservasList /></ProtectedRoute>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
 
 ```
 
@@ -856,74 +143,6 @@ export default function App() {
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/index.css`:
 ```css
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
 
 ```
 
@@ -931,20 +150,6 @@ button:focus-visible {
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/main.jsx`:
 ```jsx
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import App from "./App";
-import "./index.css"; // se existir
-
-const root = createRoot(document.getElementById("root"));
-root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
-);
 
 ```
 
@@ -952,35 +157,6 @@ root.render(
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/src/eslint.config.js`:
 ```js
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-    },
-  },
-])
 
 ```
 
@@ -988,19 +164,6 @@ export default defineConfig([
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/src/index.html`:
 ```html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vite-project</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
 
 ```
 
@@ -4254,13 +3417,6 @@ export default defineConfig([
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/src/vite.config.js`:
 ```js
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-})
 
 ```
 
@@ -4268,38 +3424,6 @@ export default defineConfig({
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/main.py`:
 ```py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel, create_engine
-from routers import usuarios, hospedes, quartos, reservas
-
-DATABASE_URL = "sqlite:///hotel.db"
-engine = create_engine(DATABASE_URL, echo=True)
-
-app = FastAPI(title="API do Sistema de Gestão de Hotel")
-
-# CORS para React
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.on_event("startup")
-def on_startup():
-    SQLModel.metadata.create_all(engine)
-
-# Rotas
-app.include_router(usuarios.router)
-app.include_router(hospedes.router)
-app.include_router(quartos.router)
-app.include_router(reservas.router)
-
-@app.get("/")
-def home():
-    return {"message": "API do sistema de hotel funcionando!"}
 
 ```
 
@@ -4307,77 +3431,6 @@ def home():
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/models.py`:
 ```py
-from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional, List
-from datetime import datetime
-
-
-# Usuário do sistema
-class Usuario(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    nome: str
-    email: str
-    senha: str   # será criptografada
-
-# Schemas auxiliares
-class UsuarioCreate(SQLModel):
-    nome: str
-    email: str
-    senha: str
-
-class Token(SQLModel):
-    access_token: str
-    token_type: str
-
-# Hóspede
-class Hospede(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    nome: str
-    cpf: str
-    telefone: str
-    email: str
-    endereco: str
-
-    reservas: List["Reserva"] = Relationship(back_populates="hospede")
-
-# Quarto
-class Quarto(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    numero: int
-    capacidade: int
-    tipo: str   # Standard, Executivo, Suíte
-    preco_diaria: float
-    status: str # disponível, ocupado, manutenção
-    recursos: str
-
-    reservas: List["Reserva"] = Relationship(back_populates="quarto")
-
-# Reserva
-class Reserva(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hospede_id: int = Field(foreign_key="hospede.id")
-    quarto_id: int = Field(foreign_key="quarto.id")
-    data_entrada: datetime
-    data_saida: datetime
-    status: str
-    observacoes: Optional[str] = None
-
-    hospede: Hospede = Relationship(back_populates="reservas")
-    quarto: Quarto = Relationship(back_populates="reservas")
-
-# Check-in
-class CheckIn(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    reserva_id: int = Field(foreign_key="reserva.id")
-    data_hora: datetime
-
-# Check-out
-class CheckOut(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    reserva_id: int = Field(foreign_key="reserva.id")
-    data_hora: datetime
-    valor_total: float
-    forma_pagamento: str
 
 ```
 
@@ -4385,29 +3438,6 @@ class CheckOut(SQLModel, table=True):
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/requirements.txt`:
 ```txt
-annotated-types==0.7.0
-anyio==4.10.0
-bcrypt==4.3.0
-click==8.2.1
-colorama==0.4.6
-fastapi==0.116.1
-greenlet==3.2.4
-h11==0.16.0
-idna==3.10
-Jinja2==3.1.6
-MarkupSafe==3.0.2
-passlib==1.7.4
-pydantic==2.11.9
-pydantic_core==2.33.2
-PyJWT==2.10.1
-python-multipart==0.0.20
-sniffio==1.3.1
-SQLAlchemy==2.0.43
-sqlmodel==0.0.24
-starlette==0.47.3
-typing-inspection==0.4.1
-typing_extensions==4.15.0
-uvicorn==0.35.0
 
 ```
 
