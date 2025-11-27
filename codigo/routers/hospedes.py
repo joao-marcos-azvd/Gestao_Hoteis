@@ -12,29 +12,36 @@ def get_session():
     with Session(engine) as session:
         yield session
 
-#Listar hospedes
-@router.get("/hoespedes")
-def listar_hospedes(status: str = None, session: Session = Depends(get_session)):
+# Listar hóspedes (agora protegido com login)
+@router.get("/hospedes")
+def listar_hospedes(
+    status: str = None,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
     query = select(Hospede)
     hospedes = session.exec(query).all()
     return hospedes
 
-#  Criar um novo hospedes
+# Criar um novo hóspede
 @router.post("/")
 def criar_hospede(
     hospede: Hospede,
     session: Session = Depends(get_session),
     user=Depends(get_current_user)
 ):
-    existente = session.exec(select(Hospede). where(Hospede.numero == hospede.numero))
+    existente = session.exec(
+        select(Hospede).where(Hospede.cpf == hospede.cpf)   # padronizado para CPF
+    ).first()
     if existente:
-        raise HTTPException(status_code=400, detail="CPF do Hóspede já cadastrado.")
+        raise HTTPException(status_code=400, detail="CPF do hóspede já cadastrado.")
+
     session.add(hospede)
     session.commit()
     session.refresh(hospede)
     return hospede
 
-#  Atualizar hospede
+# Atualizar hóspede
 @router.put("/{hospede_id}")
 def editar_hospede(
     hospede_id: int,
@@ -44,7 +51,7 @@ def editar_hospede(
 ):
     hospede = session.get(Hospede, hospede_id)
     if not hospede:
-        raise HTTPException(status_code=404, detail="hospede não encontrado")
+        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
 
     hospede.nome = dados.nome
     hospede.cpf = dados.cpf
@@ -57,25 +64,29 @@ def editar_hospede(
     session.refresh(hospede)
     return hospede
 
-# Excluir hospede
+# Excluir hóspede
 @router.delete("/{hospede_id}")
 def deletar_hospede(
-    hospede_id: int, session: Session = Depends(get_session), user=Depends(get_current_user)
+    hospede_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
 ):
     hospede = session.get(Hospede, hospede_id)
     if not hospede:
-        raise HTTPException(status_code=404, detail="hospede não encontrado")
+        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
 
     session.delete(hospede)
     session.commit()
-    return {"message": "hospede removido com sucesso!"}
+    return {"message": "Hóspede removido com sucesso!"}
 
-#visualizar hóspedes
+# Visualizar hóspede
 @router.get("/{hospede_id}")
 def visualizar_hospede(
-    hospede_id: int, session: Session = Depends(get_session), user = Depends(get_current_user)
+    hospede_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
 ):
     hospede = session.get(Hospede, hospede_id)
     if not hospede:
-        raise HTTPException(status_code=404, detail="hospede não encontrado")
+        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
     return hospede

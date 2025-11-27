@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import Session, select, create_engine
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
@@ -13,6 +14,9 @@ engine = create_engine(DATABASE_URL)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter(prefix="/usuarios", tags=["Usuários"])
+
+# 🔑 Configuração do esquema de segurança
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/usuarios/login")
 
 def get_session():
     with Session(engine) as session:
@@ -30,6 +34,18 @@ def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+# 🔒 Função para validar token
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Token inválido")
+        return email
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+
+# 📌 Registro de usuário
 @router.post("/register")
 def register(usuario: Usuario, session: Session = Depends(get_session)):
     query = select(Usuario).where(Usuario.email == usuario.email)
@@ -43,12 +59,16 @@ def register(usuario: Usuario, session: Session = Depends(get_session)):
     session.refresh(usuario)
     return {"message": "Usuário criado com sucesso!", "usuario": usuario}
 
+# 📌 Login
 @router.post("/login")
-def login(email: str, senha: str, session: Session = Depends(get_session)):
-    query = select(Usuario).where(Usuario.email == email)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+    query = select(Usuario).where(Usuario.email == form_data.username)
     user = session.exec(query).first()
-    if not user or not verify_password(senha, user.senha):
+    if not user or not verify_password(form_data.password, user.senha):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
     token = create_access_token({"sub": user.email})
-    return {"access_token": token, "user": {"id": user.id, "nome": user.nome, "email": user.email}}
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
