@@ -2,25 +2,31 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import "./styles/Login.css"; // importa o CSS
+import "./styles/Login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState(null);
-  const nav = useNavigate();
+  const navigate = useNavigate(); // ✅ CORRIGIDO: nav → navigate
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setError(null); // Limpa erro anterior
+    
     try {
       const resp = await api.post("/usuarios/login", null, {
         params: { email, senha }
       });
+      
       const token = resp.data.access_token;
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(resp.data.user));
-      nav("/");
+      
+      // ✅ CORRIGIDO: / → /dashboard
+      navigate("/dashboard", { replace: true });
     } catch (err) {
+      console.error("Erro login:", err); // Debug
       setError(err.response?.data?.detail || "Erro ao logar");
     }
   }
