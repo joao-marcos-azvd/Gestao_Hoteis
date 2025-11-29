@@ -1,3 +1,5 @@
+import "./styles/cadastro.css";  // ✅ CORRETO
+
 export default function Cadastro() {
   return (
     <>

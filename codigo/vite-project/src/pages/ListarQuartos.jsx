@@ -1,3 +1,6 @@
+// ✅ IMPORT CSS NO INÍCIO (NO TOPO do arquivo)
+import "./styles/listarquartos.css";
+
 export default function ListarQuartos() {
   const quartos = [
     { 

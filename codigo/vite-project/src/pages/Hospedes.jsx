@@ -1,3 +1,5 @@
+import "./styles/hospedes.css";  // ✅ CORRETO
+
 export default function Hospedes() {
   const hospedes = [
     { 

@@ -1,3 +1,5 @@
+import "./styles/cadastrarquartos.css";  // ✅ CORRETO
+
 export default function CadastrarQuartos() {
   return (
     <>
