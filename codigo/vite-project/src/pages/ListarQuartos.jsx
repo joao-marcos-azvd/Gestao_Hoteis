@@ -1,90 +1,82 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lista de Quartos — Checkin</title>
-  <link rel="stylesheet" href="listaquartos.css" />
-</head>
-<body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="logo">LOGO</div>
-      <nav class="nav">
-        <a href="#">HOME</a>
-        <a href="#">QUARTOS</a>
-        <a href="#">HÓSPEDES</a>
-      </nav>
-      <button class="btn small outline">ENTRAR</button>
-    </div>
-  </header>
+export default function ListarQuartos() {
+  const quartos = [
+    { 
+      id: 1, 
+      numero: '105', 
+      tipo: 'Standard Individual',
+      desc: 'Aconchegante, com cama de solteiro, ar-condicionado, Wi-Fi gratuito e mesa de trabalho. Ideal para estadias rápidas.',
+      status: 'occupied',
+      preco: '150,00'
+    },
+    { 
+      id: 2, 
+      numero: '203', 
+      tipo: 'Suíte Executiva Casal',
+      desc: 'Amplo e confortável, com cama queen-size, ar-condicionado, Wi-Fi, TV a cabo e frigobar. Ideal para estadias de negócios ou lazer.',
+      status: 'available',
+      preco: '280,00'
+    }
+  ];
 
-  <main class="page">
-    <section class="hero">
-      <h2 class="hero-title">CABEÇALHO DE APRESENTAÇÃO DA PÁGINA</h2>
-    </section>
-
-    <section class="controls">
-      <div class="search">
-        <input type="search" placeholder="Pesquisar" aria-label="Pesquisar" />
-        <button class="search-btn" aria-label="Pesquisar">🔍</button>
-      </div>
-      <button class="btn new">+ NOVO</button>
-    </section>
-
-    <section class="list">
-      <!-- Card 1 -->
-      <article class="card">
-        <div class="card-photo">FOTO</div>
-        <div class="card-body">
-          <div class="card-info">
-            <h3 class="room-title">Quarto 105 – Standard Individual</h3>
-            <p class="room-desc">
-              Aconchegante, com cama de solteiro, ar-condicionado, Wi-Fi gratuito e mesa de trabalho. Ideal para estadias rápidas.
-            </p>
-            <div class="meta-row">
-              <div class="status"><span class="badge occupied">Ocupado</span></div>
-              <div class="price">Preço: <strong>R$ 150,00 / diária</strong></div>
-            </div>
-          </div>
-
-          <div class="card-actions">
-            <div class="icons">
-              <button class="icon" title="Excluir">🗑️</button>
-              <button class="icon" title="Editar">✏️</button>
-            </div>
-            <button class="btn outline details">DETALHES</button>
-          </div>
+  return (
+    <>
+      <header className="topbar">
+        <div className="topbar-inner">
+          <div className="logo">LOGO</div>
+          <nav className="nav">
+            <a href="#">HOME</a>
+            <a href="#">QUARTOS</a>
+            <a href="#">HÓSPEDES</a>
+          </nav>
+          <button className="btn small outline">ENTRAR</button>
         </div>
-      </article>
+      </header>
 
-      <!-- Card 2 -->
-      <article class="card">
-        <div class="card-photo">FOTO</div>
-        <div class="card-body">
-          <div class="card-info">
-            <h3 class="room-title">Quarto 203 – Suíte Executiva Casal</h3>
-            <p class="room-desc">
-              Amplo e confortável, com cama queen-size, ar-condicionado, Wi-Fi, TV a cabo e frigobar. Ideal para estadias de negócios ou lazer.
-            </p>
-            <div class="meta-row">
-              <div class="status"><span class="badge available">Disponível</span></div>
-              <div class="price">Preço: <strong>R$ 280,00 / diária</strong></div>
-            </div>
+      <main className="page">
+        <section className="hero">
+          <h2 className="hero-title">CABEÇALHO DE APRESENTAÇÃO DA PÁGINA</h2>
+        </section>
+
+        <section className="controls">
+          <div className="search">
+            <input type="search" placeholder="Pesquisar" aria-label="Pesquisar" />
+            <button className="search-btn" aria-label="Pesquisar">🔍</button>
           </div>
+          <button className="btn new">+ NOVO</button>
+        </section>
 
-          <div class="card-actions">
-            <div class="icons">
-              <button class="icon" title="Excluir">🗑️</button>
-              <button class="icon" title="Editar">✏️</button>
-            </div>
-            <button class="btn outline details">DETALHES</button>
-          </div>
-        </div>
-      </article>
+        <section className="list">
+          {quartos.map((quarto) => (
+            <article key={quarto.id} className="card">
+              <div className="card-photo">FOTO</div>
+              <div className="card-body">
+                <div className="card-info">
+                  <h3 className="room-title">Quarto {quarto.numero} – {quarto.tipo}</h3>
+                  <p className="room-desc">{quarto.desc}</p>
+                  <div className="meta-row">
+                    <div className="status">
+                      <span className={`badge ${quarto.status}`}>
+                        {quarto.status === 'occupied' ? 'Ocupado' : 'Disponível'}
+                      </span>
+                    </div>
+                    <div className="price">
+                      Preço: <strong>R$ {quarto.preco} / diária</strong>
+                    </div>
+                  </div>
+                </div>
 
-      <!-- Repita os cards conforme necessário -->
-    </section>
-  </main>
-</body>
-</html>
+                <div className="card-actions">
+                  <div className="icons">
+                    <button className="icon" title="Excluir">🗑️</button>
+                    <button className="icon" title="Editar">✏️</button>
+                  </div>
+                  <button className="btn outline details">DETALHES</button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+      </main>
+    </>
+  );
+}

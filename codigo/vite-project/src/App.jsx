@@ -1,24 +1,35 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import QuartosList from "./pages/Quartoslist";
-import HospedesList from "./pages/HospedesList";
-import ReservasList from "./pages/ReservasList";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ListarQuartos from "./pages/ListarQuartos";
+import Hospedes from "./pages/Hospedes";
+import CadastrarQuartos from "./pages/CadastrarQuartos";
+import EditarQuarto from "./pages/EditarQuarto";
+import Cadastro from "./pages/Cadastro";
 
-export default function App() {
+function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/quartos" element={<ProtectedRoute><QuartosList /></ProtectedRoute>} />
-      <Route path="/hospedes" element={<ProtectedRoute><HospedesList /></ProtectedRoute>} />
-      <Route path="/reservas" element={<ProtectedRoute><ReservasList /></ProtectedRoute>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          
+          {/* QUARTOS */}
+          <Route path="/quartos" element={<ListarQuartos />} />
+          <Route path="/cadastrar-quartos" element={<CadastrarQuartos />} />
+          <Route path="/editar-quarto" element={<EditarQuarto />} />
+          
+          {/* HÓSPEDES */}
+          <Route path="/hospedes" element={<Hospedes />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
+
+export default App;
