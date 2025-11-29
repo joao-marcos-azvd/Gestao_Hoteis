@@ -1,28 +1,40 @@
-## Estrutura dos Diretórios:
+## Sistema de Gestão Interna de Hotéis
+
+### Estrutura dos Diretórios:
 ```
 |Gestao_Hoteis/
-│   ├──codigo/
-│   │   ├──__pycache__/
-│   │   ├──env/
-│   │   ├──routes/
-│   │   │   ├──auth.py
+|   ├──codigo/
+|   |   ├──__pycache__/
+|   |   ├──env/
+|   |   ├──routers/
+|   |   |   ├──__pycache__/
+|   |   |   ├──__init__.py
 |   |   |   ├──hospedes.py
-│   │   │   ├──quartos.py
-|   |   |   ├──reserva.py
-│   │   │   └──usuarios.py
+|   |   |   ├──quartos.py
+|   |   |   ├──reservas.py
+|   |   |   └──usuarios.py
 |   |   ├──vite-project/
 |   |   |   ├──public/
-|   |   |   |   └──vite.svg
 |   |   |   ├──src/
 |   |   |   |   ├──assets/
 |   |   |   |   ├──components/
 |   |   |   |   |   └──ProtectedRoute.jsx
 |   |   |   |   ├──pages/
-|   |   |   |   |   ├──Dashboard.jsx
-|   |   |   |   |   ├──HospedesList.jsx
+|   |   |   |   |   ├──styles/
+|   |   |   |   |   |   ├──cadastrarquartos.css
+|   |   |   |   |   |   ├──cadastro.css
+|   |   |   |   |   |   ├──editarquartos.css
+|   |   |   |   |   |   ├──hospedes.css
+|   |   |   |   |   |   ├──listaquartos.css
+|   |   |   |   |   |   ├──Login.css
+|   |   |   |   |   |   └──planos.css
+|   |   |   |   |   ├──CadastrarQuartos.jsx
+|   |   |   |   |   ├──Cadastro.jsx
+|   |   |   |   |   ├──EditarQuarto.jsx
+|   |   |   |   |   ├──Hospedes.jsx
+|   |   |   |   |   ├──ListarQuartos.jsx
 |   |   |   |   |   ├──Login.jsx
-|   |   |   |   |   ├──QuartosList.jsx
-|   |   |   |   |   └──ReservasList.jsx
+|   |   |   |   |   └──Planos.jsx
 |   |   |   |   ├──services/
 |   |   |   |   |   └──api.js
 |   |   |   |   ├──App.css
@@ -36,43 +48,400 @@
 |   |   |   ├──package.json
 |   |   |   ├──README.md
 |   |   |   └──vite.config.js
+|   |   ├──auth.py
 |   |   ├──hotel.db
 |   |   ├──main.py
 |   |   ├──models.py
 |   |   └──requirements.txt
-└──Docs
+|   ├──Docs/
+|   └──README.md
 ```
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/auth.py`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routers/hospedes.py`:
 ```py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select, create_engine
+from models import Hospede
+from auth import get_current_user  # protege as rotas com JWT
+
+DATABASE_URL = "sqlite:///hotel.db"
+engine = create_engine(DATABASE_URL)
+
+router = APIRouter(prefix="/hospede", tags=["Hospede"])
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+# Listar hóspedes (agora protegido com login)
+@router.get("/hospedes")
+def listar_hospedes(
+    status: str = None,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    query = select(Hospede)
+    hospedes = session.exec(query).all()
+    return hospedes
+
+# Criar um novo hóspede
+@router.post("/")
+def criar_hospede(
+    hospede: Hospede,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    existente = session.exec(
+        select(Hospede).where(Hospede.cpf == hospede.cpf)   # padronizado para CPF
+    ).first()
+    if existente:
+        raise HTTPException(status_code=400, detail="CPF do hóspede já cadastrado.")
+
+    session.add(hospede)
+    session.commit()
+    session.refresh(hospede)
+    return hospede
+
+# Atualizar hóspede
+@router.put("/{hospede_id}")
+def editar_hospede(
+    hospede_id: int,
+    dados: Hospede,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    hospede = session.get(Hospede, hospede_id)
+    if not hospede:
+        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
+
+    hospede.nome = dados.nome
+    hospede.cpf = dados.cpf
+    hospede.telefone = dados.telefone
+    hospede.email = dados.email
+    hospede.endereco = dados.endereco
+
+    session.add(hospede)
+    session.commit()
+    session.refresh(hospede)
+    return hospede
+
+# Excluir hóspede
+@router.delete("/{hospede_id}")
+def deletar_hospede(
+    hospede_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    hospede = session.get(Hospede, hospede_id)
+    if not hospede:
+        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
+
+    session.delete(hospede)
+    session.commit()
+    return {"message": "Hóspede removido com sucesso!"}
+
+# Visualizar hóspede
+@router.get("/{hospede_id}")
+def visualizar_hospede(
+    hospede_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    hospede = session.get(Hospede, hospede_id)
+    if not hospede:
+        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
+    return hospede
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/hospedes.py`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routers/quartos.py`:
 ```py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select, create_engine
+from models import Quarto
+from auth import get_current_user  # protege as rotas com JWT
+
+DATABASE_URL = "sqlite:///hotel.db"
+engine = create_engine(DATABASE_URL)
+
+router = APIRouter(prefix="/quartos", tags=["Quartos"])
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+# Listar quartos com filtro
+@router.get("/quartos")
+def listar_quartos(status: str = None, session: Session = Depends(get_session)):
+    query = select(Quarto)
+    if status:
+        query = query.where(Quarto.status == status)
+    quartos = session.exec(query).all()
+    return quartos
+
+#  Criar um novo quarto
+@router.post("/")
+def criar_quarto(
+    quarto: Quarto,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    existente = session.exec(select(Quarto). where(Quarto.numero == quarto.numero))
+    if existente:
+        raise HTTPException(status_code=400, detail="numero do quaro já cadastrado.")
+    session.add(quarto)
+    session.commit()
+    session.refresh(quarto)
+    return quarto
+
+
+#  Atualizar quarto
+@router.put("/{quarto_id}")
+def editar_quarto(
+    quarto_id: int,
+    dados: Quarto,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    quarto = session.get(Quarto, quarto_id)
+    if not quarto:
+        raise HTTPException(status_code=404, detail="Quarto não encontrado")
+
+    quarto.numero = dados.numero
+    quarto.tipo = dados.tipo
+    quarto.preco_diaria = dados.preco_diaria
+    quarto.recursos = dados.recursos
+
+    session.add(quarto)
+    session.commit()
+    session.refresh(quarto)
+    return quarto
+
+# Excluir quarto
+@router.delete("/{quarto_id}")
+def deletar_quarto(
+    quarto_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    quarto = session.get(Quarto, quarto_id)
+    if not quarto:
+        raise HTTPException(status_code=404, detail="Quarto não encontrado")
+
+    session.delete(quarto)
+    session.commit()
+    return {"message": "Quarto removido com sucesso!"}
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/quartos.py`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routers/reservas.py`:
 ```py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select, create_engine
+from models import Reserva, Hospede, Quarto, CheckIn, CheckOut
+from datetime import datetime
+from auth import get_current_user  # protege as rotas com JWT
 
+DATABASE_URL = "sqlite:///hotel.db"
+engine = create_engine(DATABASE_URL)
+
+router = APIRouter(prefix="/reserva", tags=["Reserva"])
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+@router.get("/")
+def listar_reservas_proximas(status: str = None, session: Session = Depends(get_session)):
+    hoje = datetime.now()
+    limite = hoje + timedelta(days=5)
+
+    query = select(Reserva).where(
+        Reserva.data_entrada >= hoje,
+        Reserva.data_entrada <= limite
+    )
+
+    reservas = session.exec(query).all()
+    return reservas
+
+@router.post("/")
+def criar_reserva(
+    reserva: Reserva,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    hospede = session.get(Hospede, reserva.hospede_id)
+    if not hospede:
+        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
+
+    quarto = session.get(Quarto, reserva.quarto_id)
+    if not quarto:
+        raise HTTPException(status_code=404, detail="Quarto não encontrado")
+
+    if quarto.status == "ocupado":
+        raise HTTPException(status_code=400, detail="Quarto já está ocupado")
+
+    reserva.data_entrada = datetime.now() if not reserva.data_entrada else reserva.data_entrada
+    session.add(reserva)
+
+    quarto.status = "ocupado"
+    session.add(quarto)
+
+    session.commit()
+    session.refresh(reserva)
+
+    return {"msg": "Reserva criada com sucesso", "reserva": reserva}
+
+@router.post("/{reserva_id}/checkin")
+def realizar_checkin(
+    reserva_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    reserva = session.get(Reserva, reserva_id)
+    if not reserva:
+        raise HTTPException(status_code=404, detail="Reserva não encontrada")
+
+    quarto = session.get(Quarto, reserva.quarto_id)
+    if not quarto:
+        raise HTTPException(status_code=404, detail="Quarto não encontrado")
+
+    if quarto.status == "ocupado":
+        raise HTTPException(status_code=400, detail="Quarto já está ocupado")
+
+    checkin = CheckIn(reserva_id=reserva.id, data_hora=datetime.now())
+    session.add(checkin)
+
+    quarto.status = "ocupado"
+    reserva.status = "em andamento"
+    session.add(quarto)
+    session.add(reserva)
+
+    session.commit()
+    session.refresh(checkin)
+
+    return {"msg": "Check-in realizado com sucesso!", "checkin": checkin}
+
+@router.post("/{reserva_id}/checkout")
+def realizar_checkout(
+    reserva_id: int,
+    valor_total: float,
+    forma_pagamento: str,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    reserva = session.get(Reserva, reserva_id)
+    if not reserva:
+        raise HTTPException(status_code=404, detail="Reserva não encontrada")
+
+    quarto = session.get(Quarto, reserva.quarto_id)
+    if not quarto:
+        raise HTTPException(status_code=404, detail="Quarto não encontrado")
+
+    if quarto.status == "disponível":
+        raise HTTPException(status_code=400, detail="Este quarto já foi liberado")
+
+    checkout = CheckOut(
+        reserva_id=reserva.id,
+        data_hora=datetime.now(),
+        valor_total=valor_total,
+        forma_pagamento=forma_pagamento
+    )
+    session.add(checkout)
+
+    quarto.status = "disponível"
+    reserva.status = "finalizada"
+    session.add(quarto)
+    session.add(reserva)
+
+    session.commit()
+    session.refresh(checkout)
+
+    return {"msg": "Check-out realizado com sucesso!", "checkout": checkout}
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/reserva.py`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routers/usuarios.py`:
 ```py
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlmodel import Session, select, create_engine
+from datetime import datetime, timedelta
+from passlib.context import CryptContext
+import jwt
+from models import Usuario
 
-```
+SECRET_KEY = "segredo_secreto"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+DATABASE_URL = "sqlite:///hotel.db"
+engine = create_engine(DATABASE_URL)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
----
+router = APIRouter(prefix="/usuarios", tags=["Usuários"])
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/routes/usuarios.py`:
-```py
+# 🔑 Configuração do esquema de segurança
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/usuarios/login")
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+def hash_password(password: str):
+    return pwd_context.hash(password)
+
+def verify_password(plain: str, hashed: str):
+    return pwd_context.verify(plain, hashed)
+
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+# 🔒 Função para validar token
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Token inválido")
+        return email
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+
+# 📌 Registro de usuário
+@router.post("/register")
+def register(usuario: Usuario, session: Session = Depends(get_session)):
+    query = select(Usuario).where(Usuario.email == usuario.email)
+    existing = session.exec(query).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email já cadastrado")
+
+    usuario.senha = hash_password(usuario.senha)
+    session.add(usuario)
+    session.commit()
+    session.refresh(usuario)
+    return {"message": "Usuário criado com sucesso!", "usuario": usuario}
+
+# 📌 Login
+@router.post("/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+    query = select(Usuario).where(Usuario.email == form_data.username)
+    user = session.exec(query).first()
+    if not user or not verify_password(form_data.password, user.senha):
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+
+    token = create_access_token({"sub": user.email})
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
 
 ```
 
@@ -80,41 +449,1816 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/components/ProtectedRoute.jsx`:
 ```jsx
+// src/components/ProtectedRoute.jsx
+import { Navigate } from "react-router-dom";
+
+export default function ProtectedRoute({ children }) {
+  const token = localStorage.getItem("token");
+  if (!token) return <Navigate to="/login" replace />;
+  return children;
+}
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/Dashboard.jsx`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/styles/cadastrarquartos.css`:
+```css
+:root{
+  --beige-1: #E5D7C6;
+  --tan-1:  #C19D7E;
+  --brown:  #A17857;
+  --muted:  #94988B;
+  --dark:   #361A0E;
+  --beige-2:#C8C0B9;
+  --accent: #D1A457;
+  --white:  #ffffff;
+  --shadow: rgba(0,0,0,0.06);
+  --radius: 10px;
+  --container: 1050px;
+  --gap: 14px;
+}
+
+/* reset */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: Inter, "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  background: linear-gradient(180deg,var(--beige-1), #F7F6F5);
+  color:var(--dark);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* topbar */
+.topbar{
+  background: var(--white);
+  border-bottom:1px solid var(--muted);
+}
+.topbar-inner{
+  max-width:var(--container);
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 20px;
+  gap:8px;
+}
+.logo{
+  font-weight:700;
+  color:var(--dark);
+  border:2px solid var(--muted);
+  padding:6px 10px;
+  border-radius:8px;
+}
+.nav{display:flex;gap:8px}
+.nav a{
+  text-decoration:none;
+  font-size:0.85rem;
+  padding:6px 10px;
+  border-radius:8px;
+  color:var(--dark);
+  border:1px solid var(--muted);
+  background:linear-gradient(180deg,var(--beige-2),var(--beige-1));
+}
+
+/* container */
+.page{
+  max-width:var(--container);
+  margin:24px auto 60px;
+  padding:0 18px;
+}
+
+/* hero */
+.hero{
+  background:var(--white);
+  border:2px solid var(--muted);
+  border-radius:8px;
+  padding:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:18px;
+  height:82px;
+}
+.hero-title{font-weight:700;letter-spacing:0.6px}
+
+/* card com formulário */
+.form-card{
+  background:transparent;
+}
+.form-grid{
+  display:grid;
+  grid-template-columns: 320px 1fr;
+  gap:24px;
+}
+
+/* photo box */
+.photo-box{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.photo-inner{
+  width:220px;
+  height:220px;
+  background: linear-gradient(180deg,var(--beige-1),var(--beige-2));
+  border:2px solid var(--muted);
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  box-shadow:0 8px 20px var(--shadow);
+  flex-direction:column;
+  padding:10px;
+}
+.photo-inner img{
+  max-width:60%;
+  height:auto;
+  opacity:0.9;
+}
+.photo-text{
+  position:absolute;
+  top:14px;
+  font-weight:700;
+  color:var(--dark);
+  letter-spacing:0.6px;
+}
+.upload-btn{
+  position:absolute;
+  bottom:10px;
+  right:10px;
+  background:linear-gradient(90deg,var(--tan-1),var(--brown));
+  color:var(--white);
+  padding:6px 8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+  border:2px solid rgba(255,255,255,0.12);
+}
+
+/* campos */
+.fields{background:var(--white); border:2px solid var(--muted); padding:18px; border-radius:10px; box-shadow:0 8px 20px var(--shadow)}
+.row{display:flex; gap:var(--gap); flex-wrap:wrap; align-items:center}
+.field{flex:1; min-width:140px; display:flex; flex-direction:column; margin-bottom:6px}
+.label-full{display:block; margin-bottom:8px; font-weight:600}
+label{font-size:0.85rem; margin-bottom:6px; color:var(--dark); font-weight:600}
+input[type="text"], input[type="number"], select, textarea{
+  padding:10px 12px;
+  border-radius:8px;
+  border:1.5px solid var(--muted);
+  font-size:0.95rem;
+  outline:none;
+  background:var(--beige-1);
+}
+select{appearance:none}
+.currency{display:flex; align-items:center; gap:8px}
+.currency .currency-symbol{
+  background:var(--beige-2);
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid var(--muted);
+  font-weight:700;
+}
+
+/* descricao full width */
+textarea{width:100%; resize:vertical; min-height:110px; background:var(--white); border-radius:6px}
+
+/* amenities */
+.amenities{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+.amenity{display:flex; align-items:center; gap:8px; font-size:0.92rem; color:#333}
+.amenity input{width:16px;height:16px}
+
+/* actions */
+.form-actions{display:flex; justify-content:flex-end; margin-top:12px}
+.btn{
+  background:linear-gradient(90deg,var(--brown),var(--tan-1));
+  color:var(--white);
+  border:none;
+  padding:10px 18px;
+  border-radius:999px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+.btn.small{padding:6px 10px;font-size:0.85rem}
+.btn.outline{background:transparent;color:var(--dark);border:1px solid var(--muted)}
+.btn.add{background:linear-gradient(90deg,var(--accent),var(--tan-1)); padding:10px 18px}
+
+/* pequenas melhorias visuais */
+.field input:focus, select:focus, textarea:focus{
+  border-color:var(--brown);
+  box-shadow:0 6px 18px rgba(161,120,87,0.08);
+}
+
+/* responsividade */
+@media (max-width: 940px){
+  .form-grid{grid-template-columns: 1fr; padding:0 8px}
+  .photo-inner{margin:0 auto}
+  .fields{order:2}
+  .form-actions{justify-content:center}
+}
+
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/styles/cadastro.css`:
+```css
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  font-weight: bold;
+}
+
+body, html {
+  height: 100%;
+  background-color: #f6f0ea; /* cor de fundo clara */
+}
+
+/* CONTAINER PRINCIPAL */
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+/* PARTE ESQUERDA - FORMULÁRIO */
+.form-section {
+  flex: 1;
+  background-color: #f6f0ea; /* cor de fundo clara */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.form-section h1 {
+  font-size: 2rem;
+  color: #361A0E; /* marrom escuro */
+  margin-bottom: 30px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+form {
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+  color: #361A0E;
+  font-weight: 500;
+}
+
+input {
+  padding: 10px;
+  border: 1px solid #94988B;
+  border-radius: 20px;
+  outline: none;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  background-color: #E5D7C6;
+}
+
+input:focus {
+  border-color: #A17857;
+}
+
+/* BOTÃO DE ENTRAR */
+button {
+  background-color: #A17857; /* tom de marrom suave */
+  color: #fff;
+  border: none;
+  width: 150px;
+  height: 35px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #C19D7E; /* tom mais claro */
+  transform: scale(1.02);
+}
+
+.centralizar_botao{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+a{
+    text-decoration: none;
+    color:  #A17857;
+    transition: 0.3s;
+
+}
+
+a:hover{
+    color:  #C19D7E;
+}
+/* PARTE DIREITA - IMAGEM */
+.image-section {
+  flex: 1;
+  background-color: #361A0E; /* fundo escuro para o logo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-section img {
+  width: 100%;
+  height: 100vh;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  .image-section {
+    display: none;
+  }
+}
+
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/styles/editarquartos.css`:
+```css
+:root{
+  --beige-1: #E5D7C6;
+  --tan-1:  #C19D7E;
+  --brown:  #A17857;
+  --muted:  #94988B;
+  --dark:   #361A0E;
+  --beige-2:#C8C0B9;
+  --accent: #D1A457;
+  --white:  #ffffff;
+  --shadow: rgba(0,0,0,0.06);
+  --radius: 10px;
+  --container: 1050px;
+  --gap: 14px;
+}
+
+/* reset */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: Inter, "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  background: linear-gradient(180deg,var(--beige-1), #F7F6F5);
+  color:var(--dark);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* topbar */
+.topbar{
+  background: var(--white);
+  border-bottom:1px solid var(--muted);
+}
+.topbar-inner{
+  max-width:var(--container);
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 20px;
+  gap:8px;
+}
+.logo{
+  font-weight:700;
+  color:var(--dark);
+  border:2px solid var(--muted);
+  padding:6px 10px;
+  border-radius:8px;
+}
+.nav{display:flex;gap:8px}
+.nav a{
+  text-decoration:none;
+  font-size:0.85rem;
+  padding:6px 10px;
+  border-radius:8px;
+  color:var(--dark);
+  border:1px solid var(--muted);
+  background:linear-gradient(180deg,var(--beige-2),var(--beige-1));
+}
+
+/* container */
+.page{
+  max-width:var(--container);
+  margin:24px auto 60px;
+  padding:0 18px;
+}
+
+/* hero */
+.hero{
+  background:var(--white);
+  border:2px solid var(--muted);
+  border-radius:8px;
+  padding:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:18px;
+  height:82px;
+}
+.hero-title{font-weight:700;letter-spacing:0.6px}
+
+/* card com formulário */
+.form-card{
+  background:transparent;
+}
+.form-grid{
+  display:grid;
+  grid-template-columns: 320px 1fr;
+  gap:24px;
+}
+
+/* photo box */
+.photo-box{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.photo-inner{
+  width:220px;
+  height:220px;
+  background: linear-gradient(180deg,var(--beige-1),var(--beige-2));
+  border:2px solid var(--muted);
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  box-shadow:0 8px 20px var(--shadow);
+  flex-direction:column;
+  padding:10px;
+}
+.photo-inner img{
+  max-width:60%;
+  height:auto;
+  opacity:0.9;
+}
+.photo-text{
+  position:absolute;
+  top:14px;
+  font-weight:700;
+  color:var(--dark);
+  letter-spacing:0.6px;
+}
+.upload-btn{
+  position:absolute;
+  bottom:10px;
+  right:10px;
+  background:linear-gradient(90deg,var(--tan-1),var(--brown));
+  color:var(--white);
+  padding:6px 8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+  border:2px solid rgba(255,255,255,0.12);
+}
+
+/* campos */
+.fields{background:var(--white); border:2px solid var(--muted); padding:18px; border-radius:10px; box-shadow:0 8px 20px var(--shadow)}
+.row{display:flex; gap:var(--gap); flex-wrap:wrap; align-items:center}
+.field{flex:1; min-width:140px; display:flex; flex-direction:column; margin-bottom:6px}
+.label-full{display:block; margin-bottom:8px; font-weight:600}
+label{font-size:0.85rem; margin-bottom:6px; color:var(--dark); font-weight:600}
+input[type="text"], input[type="number"], select, textarea{
+  padding:10px 12px;
+  border-radius:8px;
+  border:1.5px solid var(--muted);
+  font-size:0.95rem;
+  outline:none;
+  background:var(--beige-1);
+}
+select{appearance:none}
+.currency{display:flex; align-items:center; gap:8px}
+.currency .currency-symbol{
+  background:var(--beige-2);
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid var(--muted);
+  font-weight:700;
+}
+
+/* descricao full width */
+textarea{width:100%; resize:vertical; min-height:110px; background:var(--white); border-radius:6px}
+
+/* amenities */
+.amenities{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+.amenity{display:flex; align-items:center; gap:8px; font-size:0.92rem; color:#333}
+.amenity input{width:16px;height:16px}
+
+/* actions */
+.form-actions{display:flex; justify-content:flex-end; margin-top:12px}
+.btn{
+  background:linear-gradient(90deg,var(--brown),var(--tan-1));
+  color:var(--white);
+  border:none;
+  padding:10px 18px;
+  border-radius:999px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+.btn.small{padding:6px 10px;font-size:0.85rem}
+.btn.outline{background:transparent;color:var(--dark);border:1px solid var(--muted)}
+.btn.add{background:linear-gradient(90deg,var(--accent),var(--tan-1)); padding:10px 18px}
+
+/* pequenas melhorias visuais */
+.field input:focus, select:focus, textarea:focus{
+  border-color:var(--brown);
+  box-shadow:0 6px 18px rgba(161,120,87,0.08);
+}
+
+/* responsividade */
+@media (max-width: 940px){
+  .form-grid{grid-template-columns: 1fr; padding:0 8px}
+  .photo-inner{margin:0 auto}
+  .fields{order:2}
+  .form-actions{justify-content:center}
+}
+
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/styles/hospedes.css`:
+```css
+:root{
+  --beige-1: #E5D7C6;
+  --beige-2: #C8C0B9;
+  --tan:     #C19D7E;
+  --brown:   #A17857;
+  --muted:   #94988B;
+  --dark:    #361A0E;
+  --accent:  #D1A457;
+  --white:   #ffffff;
+  --shadow: rgba(0,0,0,0.06);
+  --container: 1100px;
+}
+
+/* reset */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: Inter, "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  background: linear-gradient(180deg,var(--beige-1), #F7F6F5);
+  color:var(--dark);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* topbar */
+.topbar{
+  background: var(--white);
+  border-bottom: 2px solid var(--muted);
+}
+.topbar-inner{
+  max-width:var(--container);
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 20px;
+}
+.logo{
+  font-weight:700;
+  color:var(--dark);
+  border:2px solid var(--muted);
+  padding:6px 10px;
+  border-radius:8px;
+  background: linear-gradient(90deg,var(--tan),var(--brown));
+  -webkit-background-clip:text;
+  color: transparent;
+  background-clip:text;
+}
+
+/* nav */
+.nav{display:flex;gap:10px}
+.nav a{
+  text-decoration:none;
+  font-size:0.85rem;
+  padding:6px 10px;
+  border-radius:8px;
+  color:var(--dark);
+  border:1px solid var(--muted);
+  background:linear-gradient(180deg,var(--beige-2),var(--beige-1));
+}
+.nav a.active{box-shadow:0 6px 18px var(--shadow); font-weight:700}
+
+/* buttons */
+.btn{
+  background:var(--brown);
+  color:var(--white);
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  transition:transform .12s ease, background .12s ease;
+}
+.btn.small{padding:6px 10px;font-size:0.85rem}
+.btn.outline{background:transparent;color:var(--dark);border:1px solid var(--muted)}
+.btn.filter{background:linear-gradient(90deg,var(--accent),var(--tan)); color:var(--white);}
+
+/* page container */
+.page{
+  max-width:var(--container);
+  margin:28px auto;
+  padding:0 20px 80px;
+}
+
+/* hero */
+.hero{
+  border:2px solid var(--muted);
+  background: var(--white);
+  padding:28px;
+  border-radius:8px;
+  margin-bottom:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:90px;
+}
+.hero-title{font-size:1.05rem; letter-spacing:0.6px; color:var(--dark); font-weight:700;}
+
+/* controls */
+.controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:18px 0;
+}
+.search{
+  display:flex;
+  align-items:center;
+  background:var(--white);
+  border:1px solid var(--muted);
+  padding:6px;
+  border-radius:24px;
+  flex:1;
+  max-width:720px;
+}
+.search input{
+  border:none;
+  outline:none;
+  padding:10px 12px;
+  font-size:0.95rem;
+  background:transparent;
+  flex:1;
+}
+.search-btn{
+  border:none;
+  background:transparent;
+  font-size:1rem;
+  padding:8px 10px;
+  cursor:pointer;
+}
+.actions-right{display:flex;gap:10px;align-items:center}
+
+/* table card */
+.table-card{
+  background:transparent;
+}
+.guest-table{
+  width:100%;
+  border-collapse:collapse;
+  background:var(--white);
+  border:2px solid var(--muted);
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0 8px 20px var(--shadow);
+  font-size:0.95rem;
+}
+.guest-table thead tr{
+  background: linear-gradient(90deg,var(--beige-2),var(--beige-1));
+}
+.guest-table th, .guest-table td{
+  padding:16px 14px;
+  border-bottom:1px solid rgba(0,0,0,0.04);
+  text-align:left;
+  vertical-align:middle;
+}
+.guest-table thead th{
+  font-weight:700;
+  border-bottom:2px solid var(--muted);
+  color:var(--dark);
+}
+.guest-table tbody tr:hover{background:rgba(217,210,201,0.28)}
+
+/* make CPF column monospaced-ish spacing smaller */
+.guest-table td:nth-child(3), .guest-table td:nth-child(4){
+  white-space:nowrap;
+  font-family: monospace;
+  font-size:0.92rem;
+  color:#333;
+}
+
+/* icons column */
+.icons{display:flex;gap:8px;justify-content:flex-end}
+.icon{
+  background:transparent;
+  border:1px solid var(--muted);
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:0.95rem;
+}
+
+/* responsiveness */
+@media (max-width: 980px){
+  .guest-table th:nth-child(6), .guest-table td:nth-child(6){display:none} /* hide address on small */
+  .controls{flex-direction:column;align-items:stretch}
+  .actions-right{justify-content:flex-end}
+}
+@media (max-width: 640px){
+  .guest-table th:nth-child(5), .guest-table td:nth-child(5){display:none} /* hide email on very small */
+  .guest-table th:nth-child(4), .guest-table td:nth-child(4){display:none} /* hide phone */
+  .guest-table th:nth-child(3), .guest-table td:nth-child(3){display:none} /* hide cpf */
+  .guest-table th:nth-child(2), .guest-table td:nth-child(2){max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .search{max-width:100%}
+  .topbar-inner{padding:10px}
+}
+
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/styles/listaquartos.css`:
+```css
+:root{
+  /* paleta fornecida */
+  --beige-1: #E5D7C6;
+  --beige-2: #C8C0B9;
+  --tan: #C19D7E;
+  --brown: #A17857;
+  --muted-gray: #94988B;
+  --dark: #361A0E;
+  --accent: #D1A457;
+  --white: #ffffff;
+  --shadow: rgba(0,0,0,0.08);
+  --radius: 10px;
+  --container-width: 1100px;
+}
+
+/* reset básico */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: "Inter", "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg, var(--beige-1) 0%, #F7F6F5 100%);
+  color: var(--dark);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* topbar */
+.topbar{
+  background: var(--white);
+  border-bottom: 2px solid var(--muted-gray);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+}
+.topbar-inner{
+  max-width: var(--container-width);
+  margin: 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:14px 20px;
+}
+.logo{
+  font-weight:700;
+  color:var(--dark);
+  background:linear-gradient(90deg,var(--tan),var(--brown));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color: transparent;
+  border:2px solid var(--muted-gray);
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:0.95rem;
+}
+
+/* nav */
+.nav{
+  display:flex;
+  gap:10px;
+}
+.nav a{
+  text-decoration:none;
+  font-size:0.85rem;
+  padding:6px 10px;
+  border-radius:8px;
+  color:var(--dark);
+  border:1px solid var(--muted-gray);
+  background:linear-gradient(180deg,var(--beige-2),var(--beige-1));
+}
+.nav a:hover{box-shadow:0 4px 10px var(--shadow)}
+
+/* buttons */
+.btn{
+  background:var(--brown);
+  color:var(--white);
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  transition:transform .12s ease, background .12s ease;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn.small{padding:6px 10px;font-size:0.85rem}
+.btn.outline, .btn.outline.details{background:transparent;color:var(--dark);border:1px solid var(--muted-gray)}
+.btn.new{background:linear-gradient(90deg,var(--accent),var(--tan)); color:var(--white); font-weight:700}
+.btn.new:hover{filter:brightness(.95)}
+
+/* main page container */
+.page{
+  max-width:var(--container-width);
+  margin:28px auto;
+  padding:0 20px 80px;
+}
+
+/* hero */
+.hero{
+  border:2px solid var(--muted-gray);
+  background: var(--white);
+  padding:28px;
+  border-radius:8px;
+  margin-bottom:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:90px;
+}
+.hero-title{font-size:1.05rem; letter-spacing:0.6px; color:var(--dark); font-weight:700;}
+
+/* controls: search + new */
+.controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:18px 0;
+}
+.search{
+  display:flex;
+  align-items:center;
+  background:var(--white);
+  border:1px solid var(--muted-gray);
+  padding:6px;
+  border-radius:24px;
+  flex:1;
+  max-width:720px;
+}
+.search input{
+  border:none;
+  outline:none;
+  padding:10px 12px;
+  font-size:0.95rem;
+  background:transparent;
+  flex:1;
+}
+.search-btn{
+  border:none;
+  background:transparent;
+  font-size:1rem;
+  padding:8px 10px;
+  cursor:pointer;
+}
+
+/* list / card */
+.list{display:flex;flex-direction:column;gap:18px}
+.card{
+  display:flex;
+  gap:18px;
+  background:var(--white);
+  border:2px solid var(--muted-gray);
+  padding:14px;
+  border-radius:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.03);
+  align-items:stretch;
+}
+
+/* photo box */
+.card-photo{
+  width:220px;
+  min-width:180px;
+  background:linear-gradient(180deg,var(--beige-1),var(--beige-2));
+  border:2px dashed var(--muted-gray);
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  color:var(--dark);
+  font-size:1rem;
+  padding:10px;
+}
+
+/* body area */
+.card-body{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  justify-content:space-between;
+}
+
+/* info */
+.card-info{padding-right:6px}
+.room-title{margin:0;margin-bottom:8px;color:var(--dark);font-size:1.05rem}
+.room-desc{margin:0;color:#4b4b4b;font-size:0.92rem;line-height:1.4}
+
+/* meta row */
+.meta-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:10px;
+}
+.price{font-size:0.95rem;color:var(--dark)}
+.status{}
+
+/* badges */
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:18px;
+  font-weight:700;
+  font-size:0.82rem;
+  border:2px solid var(--muted-gray);
+}
+.badge.occupied{
+  background: linear-gradient(90deg,#F6E9E3,#EFDCD3);
+  color:var(--dark);
+  border-color:#E0BDB1;
+}
+.badge.available{
+  background: linear-gradient(90deg,#E8F6EA,#DFF3DE);
+  color: #0b6b2d;
+  border-color:#9ad19a;
+}
+
+/* actions area */
+.card-actions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  justify-content:flex-end;
+}
+.icons{display:flex;gap:6px}
+.icon{
+  background:transparent;
+  border:1px solid var(--muted-gray);
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:0.95rem;
+}
+
+/* detalhe button */
+.details{padding:8px 12px;font-size:0.95rem}
+
+/* responsiveness */
+@media (max-width: 900px){
+  .card{flex-direction:column}
+  .card-photo{width:100%;min-width:auto;height:160px}
+  .card-actions{justify-content:space-between; margin-top:6px}
+  .controls{flex-direction:column;align-items:stretch}
+  .search{max-width:100%}
+}
+
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/styles/Login.css`:
+```css
+.login-container {
+  max-width: 420px;
+  margin: 3rem auto;
+  padding: 2rem;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.login-button {
+  padding: 0.8rem;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #005fa3;
+}
+
+.error-message {
+  color: red;
+  text-align: center;
+  margin-top: 1rem;
+}
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/styles/planos.css`:
+```css
+:root{
+  /* sua paleta */
+  --beige-1: #E5D7C6;
+  --beige-2: #C8C0B9;
+  --tan:     #C19D7E;
+  --brown:   #A17857;
+  --muted:   #94988B;
+  --dark:    #361A0E;
+  --accent:  #D1A457;
+  --white:   #ffffff;
+
+  --card-radius: 12px;
+  --frame-padding: 28px;
+  --max-width: 900px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: "Poppins", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  background: linear-gradient(180deg, #faf8f7 0%, #f4f3f2 100%);
+  color: var(--dark);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* central frame with thick border like mock */
+.page{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:48px 16px;
+  min-height:100vh;
+}
+.frame{
+  width:100%;
+  max-width: var(--max-width);
+  padding: var(--frame-padding);
+  background: var(--white);
+  border: 6px solid #0b0b0b; /* outer thin dark frame like mock */
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+}
+
+/* inner area to create inset border */
+.cards{
+  display:flex;
+  gap:28px;
+  padding:22px;
+  border: 2px solid var(--muted);
+  border-radius:8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.9));
+  justify-content:space-between;
+}
+
+/* individual plan card */
+.plan{
+  flex:1;
+  min-width: 240px;
+  border-radius: var(--card-radius);
+  padding: 26px;
+  display:flex;
+  align-items:stretch;
+  transition: transform .18s ease, box-shadow .18s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* distinct subtle gradients for each plan (soft pastel) */
+.plan--monthly{
+  background: linear-gradient(135deg, rgba(229,215,198,0.9) 0%, rgba(212,231,244,0.9) 100%);
+}
+.plan--annual{
+  background: linear-gradient(135deg, rgba(216,204,240,0.95) 0%, rgba(210,235,241,0.95) 100%);
+}
+
+/* content wrapper */
+.plan-inner{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  width:100%;
+  align-items:stretch;
+}
+
+/* title and subtitle */
+.plan-title{
+  margin:0;
+  text-align:center;
+  font-size:1.6rem;
+  line-height:1.05;
+  font-weight:800;
+  color:var(--dark);
+}
+.plan-title span{font-weight:800}
+
+.plan-sub{
+  margin:0;
+  text-align:center;
+  font-size:0.95rem;
+  color:var(--dark);
+}
+
+/* description paragraph */
+.plan-desc{
+  margin: 6px 0 0 0;
+  font-size:0.95rem;
+  color:#333;
+  line-height:1.5;
+  text-align:center;
+  padding: 0 8px;
+}
+
+/* price block */
+.plan-price{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  margin-top:auto; /* push price/button to bottom */
+}
+.price-label{
+  font-weight:700;
+  color:var(--dark);
+  font-size:0.95rem;
+}
+.price-value{
+  font-size:1.05rem;
+  color:var(--dark);
+}
+.price-value strong{font-size:1.25rem;}
+
+/* CTA button */
+.btn-cta{
+  margin:8px auto 0;
+  padding:10px 18px;
+  border-radius:999px;
+  border:2px solid var(--dark);
+  background: linear-gradient(90deg, var(--tan), var(--brown));
+  color:var(--white);
+  font-weight:700;
+  cursor:pointer;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn-cta:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.12);
+}
+
+/* hover lift */
+.plan:hover{
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.08);
+}
+
+/* responsive: stack vertically on small */
+@media (max-width:800px){
+  .cards{flex-direction:column; gap:18px}
+  .plan{padding:20px}
+  .plan-title{font-size:1.4rem}
+  .price-value strong{font-size:1.15rem}
+}
+
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/pages/CadastrarQuartos.jsx`:
+```jsx
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cadastro de Quarto — Checkin</title>
+  <link rel="stylesheet" href="cadastrarquantos.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">LOGO</div>
+      <nav class="nav">
+        <a href="#">HOME</a>
+        <a href="#">QUARTOS</a>
+        <a href="#">HÓSPEDES</a>
+      </nav>
+      <button class="btn small outline">ENTRAR</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <h2 class="hero-title">CABEÇALHO DE APRESENTAÇÃO DA PÁGINA</h2>
+    </section>
+
+    <section class="form-card">
+      <div class="form-grid">
+        <!-- Foto / Upload -->
+        <div class="photo-box">
+          <div class="photo-inner">
+            <img src="placeholder-photo.png" alt="Placeholder" />
+            <div class="photo-text">FOTO</div>
+          
+          </div>
+        </div>
+
+        <!-- Campos do formulário -->
+        <div class="fields">
+          <div class="row">
+            <div class="field">
+              <label for="numero">Nº Quarto</label>
+              <input id="numero" type="number" placeholder="1" />
+            </div>
+
+            <div class="field">
+              <label for="tipo">Tipo</label>
+              <select id="tipo">
+                <option>Standard Individual</option>
+                <option>Standard Casal</option>
+                <option>Suíte Executiva</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="valor">Valor</label>
+              <div class="currency">
+                <span class="currency-symbol">R$</span>
+                <input id="valor" type="number" placeholder="150.00" step="0.01" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="status">Status</label>
+              <select id="status">
+                <option>Disponível</option>
+                <option>Ocupado</option>
+                <option>Manutenção</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="descricao" class="label-full">Descrição</label>
+            <textarea id="descricao" rows="5" placeholder="Descrição do quarto..."></textarea>
+          </div>
+
+          <div class="amenities">
+            <label class="amenity">
+              <input type="checkbox" /> Café da manhã
+            </label>
+            <label class="amenity">
+              <input type="checkbox" /> WI-FI
+            </label>
+            <label class="amenity">
+              <input type="checkbox" /> Serviço de quarto
+            </label>
+            <label class="amenity">
+              <input type="checkbox" /> Frigobar
+            </label>
+            <label class="amenity">
+              <input type="checkbox" /> TV
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn add">Adicionar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
+
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/pages/Cadastro.jsx`:
 ```jsx
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/HospedesList.jsx`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/pages/EditarQuarto.jsx`:
 ```jsx
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Editar Quarto — Checkin</title>
+  <link rel="stylesheet" href="cadastrarquantos.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">LOGO</div>
+      <nav class="nav">
+        <a href="#">HOME</a>
+        <a href="#">QUARTOS</a>
+        <a href="#">HÓSPEDES</a>
+      </nav>
+      <button class="btn small outline">ENTRAR</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <h2 class="hero-title">CABEÇALHO DE APRESENTAÇÃO DA PÁGINA</h2>
+    </section>
+
+    <section class="form-card">
+      <div class="form-grid">
+        <!-- Foto / Upload -->
+        <div class="photo-box">
+          <div class="photo-inner">
+            <img src="placeholder-photo.png" alt="Placeholder" />
+            <div class="photo-text">FOTO</div>
+            <label class="upload-btn">
+              <input type="file" accept="image/*" style="display:none" />
+              ⤓
+            </label>
+          </div>
+        </div>
+
+        <!-- Campos do formulário -->
+        <div class="fields">
+          <div class="row">
+            <div class="field">
+              <label for="numero">Nº Quarto</label>
+              <input id="numero" type="number" placeholder="1" />
+            </div>
+
+            <div class="field">
+              <label for="tipo">Tipo</label>
+              <select id="tipo">
+                <option>Standard Individual</option>
+                <option>Standard Casal</option>
+                <option>Suíte Executiva</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="valor">Valor</label>
+              <div class="currency">
+                <span class="currency-symbol">R$</span>
+                <input id="valor" type="number" placeholder="150.00" step="0.01" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="status">Status</label>
+              <select id="status">
+                <option>Disponível</option>
+                <option>Ocupado</option>
+                <option>Manutenção</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="descricao" class="label-full">Descrição</label>
+            <textarea id="descricao" rows="5" placeholder="Descrição do quarto..."></textarea>
+          </div>
+
+          <div class="amenities">
+            <label class="amenity">
+              <input type="checkbox" /> Café da manhã
+            </label>
+            <label class="amenity">
+              <input type="checkbox" /> WI-FI
+            </label>
+            <label class="amenity">
+              <input type="checkbox" /> Serviço de quarto
+            </label>
+            <label class="amenity">
+              <input type="checkbox" /> Frigobar
+            </label>
+            <label class="amenity">
+              <input type="checkbox" /> TV
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn add">Alterar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/Login.jsx`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/pages/Hospedes.jsx`:
 ```jsx
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hóspedes — Checkin</title>
+  <link rel="stylesheet" href="hospedes.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">LOGO</div>
+      <nav class="nav">
+        <a href="#">HOME</a>
+        <a href="#">QUARTOS</a>
+        <a href="#" class="active">HÓSPEDES</a>
+      </nav>
+      <button class="btn small outline">ENTRAR</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <h2 class="hero-title">CABEÇALHO DE APRESENTAÇÃO DA PÁGINA</h2>
+    </section>
+
+    <section class="controls">
+      <div class="search">
+        <input type="search" placeholder="Pesquisar" aria-label="Pesquisar" />
+        <button class="search-btn" aria-label="Pesquisar">🔍</button>
+      </div>
+
+      <div class="actions-right">
+        <button class="btn filter">Filtro ▾</button>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <table class="guest-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Telefone</th>
+            <th>E-mail</th>
+            <th>Endereço</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>José da Silva</td>
+            <td>123.321.258-54</td>
+            <td>(84) 96890-6238</td>
+            <td>silva.jose@gmail.com</td>
+            <td>Rua Qualquer Nº 999</td>
+            <td class="icons">
+              <button class="icon" title="Editar">✏️</button>
+              <button class="icon" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+
+          <tr>
+            <td>2</td>
+            <td>Gustavo Henrique</td>
+            <td>369.381.258-74</td>
+            <td>(84) 94890-7338</td>
+            <td>gustavo@gmail.com</td>
+            <td>Rua Certa Nº 85</td>
+            <td class="icons">
+              <button class="icon" title="Editar">✏️</button>
+              <button class="icon" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+
+          <tr>
+            <td>3</td>
+            <td>Pedro Antônio</td>
+            <td>987.351.455-92</td>
+            <td>(84) 96344-5937</td>
+            <td>peant@gmail.com</td>
+            <td>Rua das Pedras Nº 999</td>
+            <td class="icons">
+              <button class="icon" title="Editar">✏️</button>
+              <button class="icon" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+
+          <tr>
+            <td>4</td>
+            <td>Fabrício Melo</td>
+            <td>587.351.285-92</td>
+            <td>(84) 93645-4938</td>
+            <td>fabmel@gmail.com</td>
+            <td>Rua S. Agostinho Nº 999</td>
+            <td class="icons">
+              <button class="icon" title="Editar">✏️</button>
+              <button class="icon" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/QuartosList.jsx`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/pages/ListarQuartos.jsx`:
 ```jsx
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lista de Quartos — Checkin</title>
+  <link rel="stylesheet" href="listaquartos.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">LOGO</div>
+      <nav class="nav">
+        <a href="#">HOME</a>
+        <a href="#">QUARTOS</a>
+        <a href="#">HÓSPEDES</a>
+      </nav>
+      <button class="btn small outline">ENTRAR</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <h2 class="hero-title">CABEÇALHO DE APRESENTAÇÃO DA PÁGINA</h2>
+    </section>
+
+    <section class="controls">
+      <div class="search">
+        <input type="search" placeholder="Pesquisar" aria-label="Pesquisar" />
+        <button class="search-btn" aria-label="Pesquisar">🔍</button>
+      </div>
+      <button class="btn new">+ NOVO</button>
+    </section>
+
+    <section class="list">
+      <!-- Card 1 -->
+      <article class="card">
+        <div class="card-photo">FOTO</div>
+        <div class="card-body">
+          <div class="card-info">
+            <h3 class="room-title">Quarto 105 – Standard Individual</h3>
+            <p class="room-desc">
+              Aconchegante, com cama de solteiro, ar-condicionado, Wi-Fi gratuito e mesa de trabalho. Ideal para estadias rápidas.
+            </p>
+            <div class="meta-row">
+              <div class="status"><span class="badge occupied">Ocupado</span></div>
+              <div class="price">Preço: <strong>R$ 150,00 / diária</strong></div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <div class="icons">
+              <button class="icon" title="Excluir">🗑️</button>
+              <button class="icon" title="Editar">✏️</button>
+            </div>
+            <button class="btn outline details">DETALHES</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="card">
+        <div class="card-photo">FOTO</div>
+        <div class="card-body">
+          <div class="card-info">
+            <h3 class="room-title">Quarto 203 – Suíte Executiva Casal</h3>
+            <p class="room-desc">
+              Amplo e confortável, com cama queen-size, ar-condicionado, Wi-Fi, TV a cabo e frigobar. Ideal para estadias de negócios ou lazer.
+            </p>
+            <div class="meta-row">
+              <div class="status"><span class="badge available">Disponível</span></div>
+              <div class="price">Preço: <strong>R$ 280,00 / diária</strong></div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <div class="icons">
+              <button class="icon" title="Excluir">🗑️</button>
+              <button class="icon" title="Editar">✏️</button>
+            </div>
+            <button class="btn outline details">DETALHES</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Repita os cards conforme necessário -->
+    </section>
+  </main>
+</body>
+</html>
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/pages/ReservasList.jsx`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/pages/Login.jsx`:
 ```jsx
+// src/pages/Login.jsx
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
+import "./styles/Login.css"; // importa o CSS
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [error, setError] = useState(null);
+  const nav = useNavigate();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    try {
+      const resp = await api.post("/usuarios/login", null, {
+        params: { email, senha }
+      });
+      const token = resp.data.access_token;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(resp.data.user));
+      nav("/");
+    } catch (err) {
+      setError(err.response?.data?.detail || "Erro ao logar");
+    }
+  }
+
+  return (
+    <div className="login-container">
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit} className="login-form">
+        <div className="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Senha</label>
+          <input
+            type="password"
+            value={senha}
+            onChange={e => setSenha(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="login-button">Entrar</button>
+        {error && <p className="error-message">{error}</p>}
+      </form>
+    </div>
+  );
+}
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/pages/Planos.jsx`:
+```jsx
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Planos — Checkin</title>
+  <link rel="stylesheet" href="planos.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="frame">
+      <div class="cards">
+        <article class="plan plan--monthly">
+          <div class="plan-inner">
+            <h3 class="plan-title">Plano<br><span>Mensal</span></h3>
+            <p class="plan-sub">Duração: <strong>30 Dias</strong></p>
+
+            <p class="plan-desc">
+              Ideal para quem quer testar o sistema sem compromisso.
+              Acesse todas as funcionalidades de gestão, reservas, relatórios e suporte técnico.
+            </p>
+
+            <div class="plan-price">
+              <div class="price-label">Valor:</div>
+              <div class="price-value">R$ <strong>49,99</strong> <small>/ Mês</small></div>
+            </div>
+
+            <button class="btn-cta">ASSINAR</button>
+          </div>
+        </article>
+
+        <article class="plan plan--annual">
+          <div class="plan-inner">
+            <h3 class="plan-title">Plano<br><span>Anual</span></h3>
+            <p class="plan-sub">Duração: <strong>1 Ano</strong></p>
+
+            <p class="plan-desc">
+              Economize com o plano anual! Tenha acesso completo ao sistema,
+              atualizações contínuas, suporte prioritário e benefícios exclusivos.
+            </p>
+
+            <div class="plan-price">
+              <div class="price-label">Valor:</div>
+              <div class="price-value">R$ <strong>499,99</strong> <small>/ Ano</small></div>
+            </div>
+
+            <button class="btn-cta">ASSINAR</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
 
 ```
 
@@ -122,6 +2266,21 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/services/api.js`:
 ```js
+// src/services/api.js
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "http://localhost:8000", // ajuste se seu FastAPI roda em outra porta
+});
+
+// Interceptor para adicionar token automaticamente (se existir)
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+export default api;
 
 ```
 
@@ -129,6 +2288,48 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/App.css`:
 ```css
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
 
 ```
 
@@ -136,6 +2337,30 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/App.jsx`:
 ```jsx
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import QuartosList from "./pages/Quartoslist";
+import HospedesList from "./pages/HospedesList";
+import ReservasList from "./pages/ReservasList";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/quartos" element={<ProtectedRoute><QuartosList /></ProtectedRoute>} />
+      <Route path="/hospedes" element={<ProtectedRoute><HospedesList /></ProtectedRoute>} />
+      <Route path="/reservas" element={<ProtectedRoute><ReservasList /></ProtectedRoute>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 ```
 
@@ -143,6 +2368,74 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/index.css`:
 ```css
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
 
 ```
 
@@ -150,26 +2443,82 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite-project/src/main.jsx`:
 ```jsx
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
+import "./index.css"; // se existir
+
+const root = createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+);
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/src/eslint.config.js`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/eslint.config.js`:
 ```js
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs['recommended-latest'],
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/src/index.html`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/index.html`:
 ```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vite-project</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
 
 ```
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/src/package-lock.json`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/package-lock.json`:
 ```json
 {
   "name": "vite-project",
@@ -3379,7 +5728,7 @@
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/src/package.json`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/package.json`:
 ```json
 {
   "name": "vite-project",
@@ -3415,8 +5764,57 @@
 
 ---
 
-#### Conteúdo do arquivo `Gestao_Hoteis/codigo/src/vite.config.js`:
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/vite.config.js`:
 ```js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+
+```
+
+---
+
+#### Conteúdo do arquivo `Gestao_Hoteis/codigo/auth.py`:
+```py
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlmodel import Session, select, create_engine
+import jwt
+from models import Usuario
+
+SECRET_KEY = "segredo_secreto"
+ALGORITHM = "HS256"
+
+# Ponto padrão onde o frontend envia o token
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/usuarios/login")
+
+DATABASE_URL = "sqlite:///hotel.db"
+engine = create_engine(DATABASE_URL)
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(status_code=401, detail="Token inválido")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expirado")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    user = session.exec(select(Usuario).where(Usuario.email == email)).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+
+    return user
 
 ```
 
@@ -3424,6 +5822,38 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/main.py`:
 ```py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import SQLModel, create_engine
+from routers import usuarios, hospedes, quartos, reserva
+
+DATABASE_URL = "sqlite:///hotel.db"
+engine = create_engine(DATABASE_URL, echo=True)
+
+app = FastAPI(title="API do Sistema de Gestão de Hotel")
+
+# CORS para React
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
+
+# Rotas
+app.include_router(usuarios.router)
+app.include_router(hospedes.router)
+app.include_router(quartos.router)
+app.include_router(reserva.router)
+
+@app.get("/")
+def home():
+    return {"message": "API do sistema de hotel funcionando!"}
 
 ```
 
@@ -3431,6 +5861,77 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/models.py`:
 ```py
+from sqlmodel import SQLModel, Field, Relationship
+from typing import Optional, List
+from datetime import datetime
+
+
+# Usuário do sistema
+class Usuario(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nome: str
+    email: str
+    senha: str   # será criptografada
+
+# Schemas auxiliares
+class UsuarioCreate(SQLModel):
+    nome: str
+    email: str
+    senha: str
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str
+
+# Hóspede
+class Hospede(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nome: str
+    cpf: str
+    telefone: str
+    email: str
+    endereco: str
+
+    reservas: List["Reserva"] = Relationship(back_populates="hospede")
+
+# Quarto
+class Quarto(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    numero: int
+    capacidade: int
+    tipo: str   # Standard, Executivo, Suíte
+    preco_diaria: float
+    status: str # disponível, ocupado, manutenção
+    recursos: str
+
+    reservas: List["Reserva"] = Relationship(back_populates="quarto")
+
+# Reserva
+class Reserva(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hospede_id: int = Field(foreign_key="hospede.id")
+    quarto_id: int = Field(foreign_key="quarto.id")
+    data_entrada: datetime
+    data_saida: datetime
+    status: str
+    observacoes: Optional[str] = None
+
+    hospede: Hospede = Relationship(back_populates="reservas")
+    quarto: Quarto = Relationship(back_populates="reservas")
+
+# Check-in
+class CheckIn(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    reserva_id: int = Field(foreign_key="reserva.id")
+    data_hora: datetime
+
+# Check-out
+class CheckOut(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    reserva_id: int = Field(foreign_key="reserva.id")
+    data_hora: datetime
+    valor_total: float
+    forma_pagamento: str
 
 ```
 
@@ -3438,6 +5939,29 @@
 
 #### Conteúdo do arquivo `Gestao_Hoteis/codigo/requirements.txt`:
 ```txt
+annotated-types==0.7.0
+anyio==4.10.0
+bcrypt==4.3.0
+click==8.2.1
+colorama==0.4.6
+fastapi==0.116.1
+greenlet==3.2.4
+h11==0.16.0
+idna==3.10
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+passlib==1.7.4
+pydantic==2.11.9
+pydantic_core==2.33.2
+PyJWT==2.10.1
+python-multipart==0.0.20
+sniffio==1.3.1
+SQLAlchemy==2.0.43
+sqlmodel==0.0.24
+starlette==0.47.3
+typing-inspection==0.4.1
+typing_extensions==4.15.0
+uvicorn==0.35.0
 
 ```
 
