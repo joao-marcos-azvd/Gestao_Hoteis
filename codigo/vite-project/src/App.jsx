@@ -1,39 +1,43 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+// src/App.jsx
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import Login from "./pages/Login";
-import Inicial from "./pages/Inicial";           // ⬅ novo nome
-import ListarQuartos from "./pages/ListarQuartos";
-import Hospedes from "./pages/Hospedes";
+import Register from "./pages/Register";
+import Home from "./pages/Home";
 import CadastrarQuartos from "./pages/CadastrarQuartos";
 import EditarQuarto from "./pages/EditarQuarto";
-import Cadastro from "./pages/Cadastro";
+import ListarQuartos from "./pages/ListarQuartos";
+import Hospedes from "./pages/Hospedes";
+import CadastrarHospede from "./pages/CadastrarHospede";
+import EditarHospede from "./pages/EditarHospede";
+import Planos from "./pages/Planos";
 
-function App() {
+export default function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* se quer que a primeira página seja a Inicial */}
-          <Route path="/" element={<Inicial />} />
+    <BrowserRouter>
+      <Routes>
+        {/* públicas */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-          {/* se ainda quiser manter login em outra rota */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/inicial" element={<Inicial />} />
+        {/* protegidas */}
+        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/planos" element={<ProtectedRoute><Planos /></ProtectedRoute>} />
 
-          {/* QUARTOS */}
-          <Route path="/quartos" element={<ListarQuartos />} />
-          <Route path="/cadastrar-quartos" element={<CadastrarQuartos />} />
-          <Route path="/editar-quarto" element={<EditarQuarto />} />
+        {/* quartos */}
+        <Route path="/quartos" element={<ProtectedRoute><ListarQuartos /></ProtectedRoute>} />
+        <Route path="/quartos/cadastrar" element={<ProtectedRoute><CadastrarQuartos /></ProtectedRoute>} />
+        <Route path="/quartos/editar/:id" element={<ProtectedRoute><EditarQuarto /></ProtectedRoute>} />
 
-          {/* HÓSPEDES */}
-          <Route path="/hospedes" element={<Hospedes />} />
-          <Route path="/cadastro" element={<Cadastro />} />
+        {/* hospedes */}
+        <Route path="/hospedes" element={<ProtectedRoute><Hospedes /></ProtectedRoute>} />
+        <Route path="/hospedes/cadastrar" element={<ProtectedRoute><CadastrarHospede /></ProtectedRoute>} />
+        <Route path="/hospedes/editar/:id" element={<ProtectedRoute><EditarHospede /></ProtectedRoute>} />
 
-          {/* qualquer rota desconhecida volta para Inicial */}
-          <Route path="*" element={<Navigate to="/inicial" replace />} />
-        </Routes>
-      </div>
-    </Router>
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;

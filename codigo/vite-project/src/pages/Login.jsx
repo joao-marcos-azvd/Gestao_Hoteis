@@ -1,62 +1,43 @@
 // src/pages/Login.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "../services/api";
-import "./styles/Login.css";  // ✅ OK
-
+import { useState } from "react";
+import api from "../api/api";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [error, setError] = useState(null);
-  const navigate = useNavigate(); // ✅ CORRIGIDO: nav → navigate
+  const [erro, setErro] = useState("");
+  const navigate = useNavigate();
 
-  async function handleSubmit(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    setError(null); // Limpa erro anterior
-    
+    setErro("");
     try {
-      const resp = await api.post("/usuarios/login", null, {
-        params: { email, senha }
-      });
-      
-      const token = resp.data.access_token;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(resp.data.user));
-      
-      // ✅ CORRIGIDO: / → /dashboard
-      navigate("/dashboard", { replace: true });
+      const response = await api.post(
+        "/usuarios/login",
+        new URLSearchParams({
+          username: email,
+          password: senha,
+        })
+      );
+
+      localStorage.setItem("token", response.data.access_token);
+      navigate("/");
     } catch (err) {
-      console.error("Erro login:", err); // Debug
-      setError(err.response?.data?.detail || "Erro ao logar");
+      setErro(err.response?.data?.detail || "Email ou senha incorretos");
     }
   }
 
   return (
     <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit} className="login-form">
-        <div className="form-group">
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Senha</label>
-          <input
-            type="password"
-            value={senha}
-            onChange={e => setSenha(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="login-button">Entrar</button>
-        {error && <p className="error-message">{error}</p>}
+      <h1>Login</h1>
+      <form onSubmit={handleLogin}>
+        <input type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} required />
+        <input type="password" placeholder="Senha" value={senha} onChange={(e)=>setSenha(e.target.value)} required />
+        <button type="submit">Entrar</button>
       </form>
+      {erro && <p style={{color:"red"}}>{erro}</p>}
+      <p>Não tem conta? <Link to="/register">Cadastre-se</Link></p>
     </div>
   );
 }
