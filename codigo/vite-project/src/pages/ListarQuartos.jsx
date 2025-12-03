@@ -10,7 +10,7 @@ export default function ListarQuartos() {
 
   async function load() {
     try {
-      const res = await api.get("/quartos/quartos"); // conforme seu backend
+      const res = await api.get("/quartos"); // conforme seu backend
       setQuartos(res.data);
     } catch (err) {
       console.error("Erro ao carregar quartos", err);
