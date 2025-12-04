@@ -2,9 +2,16 @@
 import { useState } from "react";
 import api from "../api/api";
 import { useNavigate, Link } from "react-router-dom";
+import "./styles/cadastro.css";
 
 export default function Register() {
-  const [form, setForm] = useState({ nome: "", email: "", senha: "" });
+  const [form, setForm] = useState({
+    email: "",
+    cpf: "",
+    cnpj: "",
+    senha: "",
+    confirmarSenha: "",
+  });
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -15,8 +22,23 @@ export default function Register() {
   async function handleRegister(e) {
     e.preventDefault();
     setError(null);
+
+    if (form.senha !== form.confirmarSenha) {
+      setError("As senhas não coincidem");
+      return;
+    }
+
     try {
-      await api.post("/usuarios/register", form);
+      await api.post("/usuarios/register", {
+        // ajuste aqui de acordo com o backend:
+        // se seu modelo Usuario tem: nome, email, senha, cnpj
+        nome: form.email,       // ou um campo de nome separado, se quiser
+        email: form.email,
+        senha: form.senha,
+        cnpj: form.cnpj,
+        // cpf você pode salvar depois em outra tabela (ex: Hospede)
+      });
+
       navigate("/login");
     } catch (err) {
       setError(err.response?.data?.detail || "Erro ao cadastrar");
@@ -24,16 +46,95 @@ export default function Register() {
   }
 
   return (
-    <div>
-      <h1>Criar Conta</h1>
-      <form onSubmit={handleRegister}>
-        <input name="nome" placeholder="Nome" onChange={handleChange} required/>
-        <input name="email" placeholder="Email" type="email" onChange={handleChange} required/>
-        <input name="senha" placeholder="Senha" type="password" onChange={handleChange} required/>
-        <button type="submit">Cadastrar</button>
-      </form>
-      {error && <p style={{color:'red'}}>{error}</p>}
-      <p>Já tem conta? <Link to="/login">Entrar</Link></p>
+    <div className="register-page">
+      {/* LADO ESQUERDO */}
+      <section className="register-left">
+        <div className="hero-overlay" />
+      </section>
+
+      {/* LADO DIREITO */}
+      <section className="register-right">
+        <div className="form-card">
+          <h1 className="form-title">Cadastro</h1>
+
+          <form onSubmit={handleRegister}>
+            <div className="form-group">
+              <label htmlFor="email">EMAIL</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Digite seu e-mail"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="cpf">CPF</label>
+              <input
+                id="cpf"
+                name="cpf"
+                type="text"
+                placeholder="Digite seu cpf"
+                value={form.cpf}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="cnpj">CNPJ</label>
+              <input
+                id="cnpj"
+                name="cnpj"
+                type="text"
+                placeholder="Digite seu CNPJ"
+                value={form.cnpj}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="senha">SENHA</label>
+              <input
+                id="senha"
+                name="senha"
+                type="password"
+                placeholder="Digite sua senha"
+                value={form.senha}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmarSenha">CONFIRMAR SENHA</label>
+              <input
+                id="confirmarSenha"
+                name="confirmarSenha"
+                type="password"
+                placeholder="Confirme sua senha"
+                value={form.confirmarSenha}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn-submit">
+              CADASTRAR-SE
+            </button>
+
+            {error && <p className="register-error">{error}</p>}
+          </form>
+
+          <p className="login-link">
+            Já tenho conta
+            <Link to="/login"> entrar</Link>
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

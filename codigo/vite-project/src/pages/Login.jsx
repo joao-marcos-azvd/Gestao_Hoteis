@@ -2,9 +2,11 @@
 import { useState } from "react";
 import api from "../api/api";
 import { useNavigate, Link } from "react-router-dom";
+import "./styles/login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
+  const [cnpj, setCnpj] = useState(""); // novo campo
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const navigate = useNavigate();
@@ -12,11 +14,12 @@ export default function Login() {
   async function handleLogin(e) {
     e.preventDefault();
     setErro("");
+
     try {
       const response = await api.post(
         "/usuarios/login",
         new URLSearchParams({
-          username: email,
+          username: email,    // mantém como estava na API
           password: senha,
         })
       );
@@ -29,15 +32,71 @@ export default function Login() {
   }
 
   return (
-    <div className="login-container">
-      <h1>Login</h1>
-      <form onSubmit={handleLogin}>
-        <input type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} required />
-        <input type="password" placeholder="Senha" value={senha} onChange={(e)=>setSenha(e.target.value)} required />
-        <button type="submit">Entrar</button>
-      </form>
-      {erro && <p style={{color:"red"}}>{erro}</p>}
-      <p>Não tem conta? <Link to="/register">Cadastre-se</Link></p>
+    <div className="login-page">
+      {/* Lado esquerdo */}
+      <section className="login-left">
+        <div className="login-card">
+          <h1 className="login-title">Login</h1>
+
+          <form onSubmit={handleLogin}>
+            <div className="form-group">
+              <label htmlFor="email">EMAIL</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="Digite seu e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="cnpj">CNPJ</label>
+              <input
+                id="cnpj"
+                type="text"
+                placeholder="Digite seu CNPJ"
+                value={cnpj}
+                onChange={(e) => setCnpj(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="senha">SENHA</label>
+              <input
+                id="senha"
+                type="password"
+                placeholder="Digite sua senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn-login">
+              ENTRAR
+            </button>
+
+            {erro && <p className="login-error">{erro}</p>}
+          </form>
+
+          <p className="signup-text">
+            Não tem conta?
+            <Link to="/register"> cadastre-se</Link>
+          </p>
+        </div>
+      </section>
+
+      {/* Lado direito */}
+      <section className="login-right">
+        {/* <img
+          className="hero-image"
+          src="https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg"
+          alt="Fachada de hotel"
+        /> */}
+        <div className="hero-overlay" />
+      </section>
     </div>
   );
 }
