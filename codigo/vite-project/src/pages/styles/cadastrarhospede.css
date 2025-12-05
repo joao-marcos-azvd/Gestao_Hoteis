@@ -53,6 +53,40 @@ html,body { height:100%; margin:0; }
     box-shadow: none; 
 }
 
+/* Estilo para o botão "Sair" */
+.sidebar button {
+    text-decoration: none;
+    color: var(--bege-claro);
+    background-color: transparent;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+    font-weight: 500;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    text-align: left;
+}
+
+/* Botão no hover (igual aos links) */
+.sidebar button:hover {
+    background-color: var(--marrom-claro);
+    color: var(--branco);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transform: translateX(5px);
+}
+
+/* Se quiser marcar "ativo" algum dia */
+.sidebar button.active {
+    background-color: var(--marrom-alaranjado);
+    color: var(--branco);
+    font-weight: 700;
+}
+
+
 .sidebar nav ul {
     list-style: none;
     padding: 0;

@@ -50,6 +50,7 @@ export default function Hospedes() {
                         
                         <li><NavLink to="/hospedes/cadastrar" className={getLinkClass}>Cadastrar Hóspede</NavLink></li>
                         <li><NavLink to="/planos" className={getLinkClass} end>Planos</NavLink></li>
+                        
                     </ul>
                 </nav>
             </aside>
