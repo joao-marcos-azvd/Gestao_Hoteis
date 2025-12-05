@@ -6,7 +6,7 @@ import "./styles/login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [cnpj, setCnpj] = useState(""); // novo campo
+  const [cnpj, setCnpj] = useState(""); // opcional, não usado no login
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function Login() {
       const response = await api.post(
         "/usuarios/login",
         new URLSearchParams({
-          username: email,    // mantém como estava na API
+          username: email, // backend exige username=email
           password: senha,
         })
       );
@@ -33,7 +33,6 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      {/* Lado esquerdo */}
       <section className="login-left">
         <div className="login-card">
           <h1 className="login-title">Login</h1>
@@ -82,19 +81,13 @@ export default function Login() {
           </form>
 
           <p className="signup-text">
-            Não tem conta?
+            Não tem conta?  
             <Link to="/register"> cadastre-se</Link>
           </p>
         </div>
       </section>
 
-      {/* Lado direito */}
       <section className="login-right">
-        {/* <img
-          className="hero-image"
-          src="https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg"
-          alt="Fachada de hotel"
-        /> */}
         <div className="hero-overlay" />
       </section>
     </div>

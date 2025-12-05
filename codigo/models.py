@@ -2,28 +2,24 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
 
-
-# Usuário do sistema
+# Usuário
 class Usuario(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     nome: str
     email: str
-    senha: str   # será criptografada
-    cnpj: str    # novo campo para identificar o hotel / empresa
+    senha: str
+    cnpj: str
 
-
-# Schemas auxiliares
+# Schema para criação
 class UsuarioCreate(SQLModel):
     nome: str
     email: str
     senha: str
-    cnpj: str    # mesmo campo no schema de criação
-
+    cnpj: str
 
 class Token(SQLModel):
     access_token: str
     token_type: str
-
 
 # Hóspede
 class Hospede(SQLModel, table=True):
@@ -33,22 +29,18 @@ class Hospede(SQLModel, table=True):
     telefone: str
     email: str
     endereco: str
-
     reservas: List["Reserva"] = Relationship(back_populates="hospede")
-
 
 # Quarto
 class Quarto(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     numero: int
     capacidade: int
-    tipo: str   # Standard, Executivo, Suíte
+    tipo: str
     preco_diaria: float
-    status: str # disponível, ocupado, manutenção
+    status: str
     recursos: str
-
     reservas: List["Reserva"] = Relationship(back_populates="quarto")
-
 
 # Reserva
 class Reserva(SQLModel, table=True):
@@ -59,17 +51,14 @@ class Reserva(SQLModel, table=True):
     data_saida: datetime
     status: str
     observacoes: Optional[str] = None
-
     hospede: Hospede = Relationship(back_populates="reservas")
     quarto: Quarto = Relationship(back_populates="reservas")
-
 
 # Check-in
 class CheckIn(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     reserva_id: int = Field(foreign_key="reserva.id")
     data_hora: datetime
-
 
 # Check-out
 class CheckOut(SQLModel, table=True):

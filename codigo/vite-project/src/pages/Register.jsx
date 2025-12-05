@@ -12,6 +12,7 @@ export default function Register() {
     senha: "",
     confirmarSenha: "",
   });
+
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -30,13 +31,10 @@ export default function Register() {
 
     try {
       await api.post("/usuarios/register", {
-        // ajuste aqui de acordo com o backend:
-        // se seu modelo Usuario tem: nome, email, senha, cnpj
-        nome: form.email,       // ou um campo de nome separado, se quiser
+        nome: form.email.split("@")[0], // nome padrão
         email: form.email,
         senha: form.senha,
         cnpj: form.cnpj,
-        // cpf você pode salvar depois em outra tabela (ex: Hospede)
       });
 
       navigate("/login");
@@ -47,12 +45,10 @@ export default function Register() {
 
   return (
     <div className="register-page">
-      {/* LADO ESQUERDO */}
       <section className="register-left">
         <div className="hero-overlay" />
       </section>
 
-      {/* LADO DIREITO */}
       <section className="register-right">
         <div className="form-card">
           <h1 className="form-title">Cadastro</h1>
@@ -72,12 +68,12 @@ export default function Register() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="cpf">CPF</label>
+              <label htmlFor="cpf">CPF (opcional)</label>
               <input
                 id="cpf"
                 name="cpf"
                 type="text"
-                placeholder="Digite seu cpf"
+                placeholder="Digite seu CPF"
                 value={form.cpf}
                 onChange={handleChange}
               />
@@ -130,7 +126,7 @@ export default function Register() {
           </form>
 
           <p className="login-link">
-            Já tenho conta
+            Já tenho conta  
             <Link to="/login"> entrar</Link>
           </p>
         </div>

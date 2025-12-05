@@ -1,5 +1,11 @@
+/* O nome do arquivo é 'cadastro.css', e ele deve ser usado para estilizar 
+    CadastrarHospede, CadastrarQuartos, etc., ou ser importado globalmente.
+    Asseguro que as classes utilizadas (sidebar, content, form-layout, field, etc.)
+    são consistentes com as versões anteriores.
+*/
+
 :root{
-  /* Cores da paleta original */
+  /* Cores da paleta Terrosa */
   --bege-claro: #f2e8dc;
   --marrom-escuro: #5a3821;
   --marrom-claro: #7a5d3a;
@@ -12,7 +18,6 @@
   --shadow-light: rgba(0,0,0,0.06);
   --shadow-dark: rgba(0,0,0,0.4);
   --radius: 12px;
-  --container: 1200px;
   --gap: 20px;
 }
 
@@ -28,7 +33,7 @@ html,body { height:100%; margin:0; }
     color: var(--marrom-escuro);
 }
 
-/* -------------------- MENU LATERAL (SIDEBAR) - COERÊNCIA COM HOME -------------------- */
+/* -------------------- MENU LATERAL (SIDEBAR) -------------------- */
 .sidebar {
     width: 280px;
     padding: 30px 20px;
@@ -45,7 +50,6 @@ html,body { height:100%; margin:0; }
     padding: 0 10px;
     margin-bottom: 35px;
     border-radius: 8px;
-    /* SEM SOMBRA: conforme solicitado */
     box-shadow: none; 
 }
 
@@ -61,7 +65,7 @@ html,body { height:100%; margin:0; }
     margin: 8px 0;
 }
 
-.sidebar a.link-item {
+.sidebar a.link-item { 
     text-decoration: none;
     color: var(--bege-claro);
     background-color: transparent;
@@ -83,7 +87,6 @@ html,body { height:100%; margin:0; }
     font-weight: 700;
     color: var(--branco);
 }
-
 
 /* -------------------- CONTEÚDO PRINCIPAL (FORMULÁRIO) -------------------- */
 .content {
@@ -131,7 +134,7 @@ html,body { height:100%; margin:0; }
 
 .field {
     flex: 1;
-    min-width: 180px;
+    min-width: 250px; /* Largura mínima para campos de hóspede */
     display: flex;
     flex-direction: column;
 }
@@ -148,10 +151,9 @@ label {
     font-weight: 600;
 }
 
-/* ESTILIZAÇÃO DOS INPUTS E SELECTS */
+/* ESTILIZAÇÃO DOS INPUTS E TEXTAREA */
 input[type="text"], 
-input[type="number"], 
-select, 
+input[type="email"], 
 textarea {
     padding: 12px 15px;
     border-radius: 8px;
@@ -163,51 +165,20 @@ textarea {
     transition: all 0.2s;
 }
 
-select {
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="%23A17857"><path d="M7 10l5 5 5-5z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 15px center;
-    padding-right: 35px;
-}
-
 textarea {
     resize: vertical;
-    min-height: 120px;
+    min-height: 100px; /* Um pouco menor que o de quartos */
     background: var(--branco);
 }
 
 /* FOCUS/INTERAÇÃO */
 .field input:focus, 
-select:focus, 
 textarea:focus {
     border-color: var(--marrom-alaranjado);
     box-shadow: 0 0 0 2px rgba(167, 120, 82, 0.2);
     background: var(--branco);
 }
 
-/* CAMPO DE MOEDA */
-.currency {
-    display: flex; 
-    align-items: stretch;
-}
-
-.currency .currency-symbol {
-    background: var(--marrom-medio);
-    color: var(--branco);
-    padding: 12px 10px;
-    border-radius: 8px 0 0 8px;
-    font-weight: 700;
-    border: none;
-    display: flex;
-    align-items: center;
-}
-
-.currency input[type="number"] {
-    border-radius: 0 8px 8px 0;
-    border-left: none;
-    flex-grow: 1;
-}
 
 /* BOTÕES */
 .form-actions {
@@ -261,21 +232,6 @@ textarea:focus {
     }
     .field {
         min-width: 100%;
-    }
-    .currency input[type="number"],
-    .currency .currency-symbol {
-        border-radius: 8px;
-        width: 100%;
-    }
-    .currency {
-        flex-direction: column;
-        gap: 8px;
-    }
-    .currency .currency-symbol {
-        padding: 8px 10px;
-    }
-    .currency input[type="number"] {
-        border-left: 2px solid var(--bege-medio);
     }
     .form-actions {
         justify-content: center;

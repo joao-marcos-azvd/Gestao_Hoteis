@@ -1,0 +1,199 @@
+:root {
+  /* Variáveis de Cor (Mantenho as suas, agora centralizadas) */
+  --bege-claro: #f2e8dc;
+  --marrom-escuro: #5a3821;
+  --marrom-claro: #7a5d3a;
+  --bege-medio: #c8b19a;
+  --bege-rosado: #e4d5c2;
+  --marrom-medio: #a17857;
+  --marrom-alaranjado: #a77852;
+  --branco: #fff;
+  --preto-gradiente: rgba(0, 0, 0, 0.15);
+  --preto-escurecido: rgba(0, 0, 0, 0.4);
+}
+
+/* -------------------- LAYOUT GERAL -------------------- */
+* {
+    box-sizing: border-box;
+}
+
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bege-rosado); /* Fundo suave */
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--marrom-escuro);
+    font-size: 16px;
+}
+
+/* -------------------- MENU LATERAL (SIDEBAR) -------------------- */
+.sidebar {
+    width: 280px;
+    padding: 25px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--marrom-escuro); /* Cor mais escura para maior contraste e foco */
+    box-shadow: 6px 0 15px var(--preto-escurecido); /* Adicionado/Ajustado */
+    z-index: 10;
+}
+
+.logo-img {
+    max-width: 100%;
+    height: auto;
+    padding: 0 10px;
+    margin-bottom: 35px;
+    border-radius: 8px;
+    box-shadow: none; /* 👈 MUDANÇA: Sombra da logo removida */
+}
+
+.sidebar nav {
+    flex-grow: 1;
+}
+
+.sidebar ul {
+    list-style: none; /* Remove bullet points nativos */
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 15px;
+}
+
+.sidebar li {
+    margin: 8px 0;
+}
+
+.sidebar a {
+    text-decoration: none;
+    color: var(--bege-claro);
+    background-color: transparent;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+    font-weight: 500;
+}
+
+/* 👈 NOVO ESTILO: Link Ativo */
+.sidebar a.active {
+    background-color: var(--marrom-alaranjado); /* Cor de destaque */
+    color: var(--branco);
+    font-weight: 700;
+    box-shadow: none; /* Desativa sombra/translate do hover quando ativo */
+    transform: none; 
+}
+
+.sidebar a:hover {
+    background-color: var(--marrom-claro); /* Cor de hover mais quente e visível */
+    color: var(--branco);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transform: translateX(5px); /* Movimento de destaque */
+}
+
+/* REMOÇÃO DOS PONTOS (ÍCONES SIMULADOS) DO MENU */
+.sidebar a::before {
+    content: none; /* Remove o conteúdo do pseudo-elemento */
+    margin-right: 0;
+}
+
+
+/* -------------------- CONTEÚDO PRINCIPAL (Inalterado) -------------------- */
+.content {
+    flex: 1;
+    padding: 60px 80px; /* Mais espaço para um visual mais premium */
+    overflow-y: auto;
+}
+
+.content h1 {
+    color: var(--marrom-escuro);
+    font-size: 2.5rem; 
+    margin-bottom: 5px;
+    border-bottom: 3px solid var(--marrom-alaranjado);
+    display: inline-block;
+    padding-bottom: 8px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: var(--marrom-medio);
+    font-style: normal;
+    margin-bottom: 50px;
+    font-size: 1.1rem;
+    padding-left: 2px;
+}
+
+/* -------------------- CARDS DE NAVEGAÇÃO DETALHADOS (Inalterado) -------------------- */
+.cards {
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+    gap: 30px; 
+    margin-top: 30px;
+}
+
+.card {
+    background: var(--branco); 
+    color: var(--marrom-escuro);
+    padding: 40px; 
+    border-radius: 16px; 
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; 
+    text-align: left;
+    min-height: 200px; 
+    border: 1px solid var(--bege-medio);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); 
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efeito de Destaque no Card */
+.card::before {
+    content: ''; 
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px; 
+    background-color: var(--marrom-alaranjado);
+    transition: transform 0.3s ease-in-out;
+    transform: translateY(-100%); 
+}
+
+/* Título e Conteúdo Interno */
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--marrom-claro);
+}
+
+.card-subtitle {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--marrom-medio);
+    margin-bottom: 25px; 
+}
+
+.card-link-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--marrom-alaranjado);
+    margin-top: auto; 
+    display: inline-block;
+    padding-right: 5px;
+}
+
+/* Efeito Hover Refinado */
+.card:hover {
+    color: var(--marrom-escuro);
+    background-color: var(--bege-claro); 
+    transform: translateY(-5px); 
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1); 
+    border-color: var(--marrom-alaranjado); 
+}
+
+.card:hover::before {
+    transform: translateY(0); 
+}
