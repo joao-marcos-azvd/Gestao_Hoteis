@@ -90,3 +90,16 @@ def visualizar_hospede(
     if not hospede:
         raise HTTPException(status_code=404, detail="Hóspede não encontrado")
     return hospede
+
+# Buscar hóspede pelo nome
+@router.get("/buscar/{nome}")
+def buscar_hospede_por_nome(
+    nome: str,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user)
+):
+    statement = select(Hospede).where(Hospede.nome == nome)
+    hospede = session.exec(statement).first()
+    if not hospede:
+        raise HTTPException(status_code=404, detail="Hóspede não encontrado")
+    return hospede

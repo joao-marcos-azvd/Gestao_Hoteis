@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, create_engine
 from models import Quarto
 from auth import get_current_user
+from sqlmodel import select
+
 
 DATABASE_URL = "sqlite:///hotel.db"
 engine = create_engine(DATABASE_URL)
@@ -25,15 +27,17 @@ def listar_quartos(status: str = None, session: Session = Depends(get_session)):
 
 
 # ============================
-# BUSCAR UM QUARTO POR ID
+# BUSCAR UM QUARTO POR NUMERO
 # (necessário para tela de edição)
 # ============================
-@router.get("/{quarto_id}")
-def buscar_quarto(quarto_id: int, session: Session = Depends(get_session)):
-    quarto = session.get(Quarto, quarto_id)
+@router.get("/numero/{numero}")
+def buscar_quarto_por_numero(numero: int, session: Session = Depends(get_session)):
+    statement = select(Quarto).where(Quarto.numero == numero)
+    quarto = session.exec(statement).first()
     if not quarto:
         raise HTTPException(status_code=404, detail="Quarto não encontrado")
     return quarto
+
 
 
 # ============================
