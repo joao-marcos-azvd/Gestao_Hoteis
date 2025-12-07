@@ -25,7 +25,6 @@
   /* margin-left: 80px; */
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 .login-title {
@@ -63,7 +62,11 @@
   box-shadow: 0 0 0 2px rgba(161, 120, 87, 0.18);
 }
 
-#cnpj {
+.form-group > #email {
+  border-radius: 999px !important;
+}
+
+.form-group > #cnpj {
   border-radius: 999px !important;
 }
 

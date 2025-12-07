@@ -27,20 +27,20 @@ body{
 
 /* central frame with thick border like mock */
 .page{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:48px 16px;
-  min-height:100vh;
+  display: flex;
+  padding: 48px 16px;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
 }
 .frame{
-  width:100%;
+  width: 100%;
   max-width: var(--max-width);
   padding: var(--frame-padding);
-  background: var(--white);
-  border: 6px solid #0b0b0b; /* outer thin dark frame like mock */
-  border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+  background: #ffffff7d;
+  border: 2px solid white;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
 }
 
 /* inner area to create inset border */
@@ -48,9 +48,6 @@ body{
   display:flex;
   gap:28px;
   padding:22px;
-  border: 2px solid var(--muted);
-  border-radius:8px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.9));
   justify-content:space-between;
 }
 
@@ -70,9 +67,11 @@ body{
 /* distinct subtle gradients for each plan (soft pastel) */
 .plan--monthly{
   background: linear-gradient(135deg, rgba(229,215,198,0.9) 0%, rgba(212,231,244,0.9) 100%);
+  border: 1px solid #86bcb5;
 }
 .plan--annual{
   background: linear-gradient(135deg, rgba(216,204,240,0.95) 0%, rgba(210,235,241,0.95) 100%);
+  border: 1px solid #8a2be282;
 }
 
 /* content wrapper */
@@ -161,4 +160,18 @@ body{
   .plan{padding:20px}
   .plan-title{font-size:1.4rem}
   .price-value strong{font-size:1.15rem}
+}
+
+.btn-back {
+  margin-bottom: 16px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--dark);
+  background: transparent;
+  color: var(--dark);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn-back:hover {
+  background: #f4f0ea;
 }

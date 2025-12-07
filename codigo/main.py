@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlmodel import SQLModel, create_engine
 from routers import usuarios, hospedes, quartos, reserva
+
 
 DATABASE_URL = "sqlite:///hotel.db"
 engine = create_engine(DATABASE_URL, echo=True)
@@ -20,6 +22,9 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
+
+# Servir arquivos estáticos (imagens, etc.)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Rotas
 app.include_router(usuarios.router)
