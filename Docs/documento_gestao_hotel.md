@@ -26,11 +26,6 @@ Registra as entradas e saídas dos hóspedes, incluindo horário e quarto utiliz
 ### 5.4 Status de pagamentos
 Controla os pagamentos realizados pelos hóspedes, permitindo registrar forma de pagamento, valores e status (Efetuado ou pendente).
 
-### 5.5 Relatórios
-**OBS: Usar o arquivo jsonsever**
-
-Gera relatórios completos sobre a ocupação dos quartos, receitas por período, histórico de hóspedes e reservas.
-
 ## 6. REQUISITOS DO SISTEMA
 ### 6.1 Requisitos Funcionais
 * O sistema deve permitir o cadastro, edição e exclusão de hóspedes;
@@ -42,8 +37,6 @@ Gera relatórios completos sobre a ocupação dos quartos, receitas por período
 * O sistema deve alterar status do quarto (ocupado, livre ou em manutenção);
 
 * O sistema deve registrar entradas (check-in) e saídas (check-out) dos hóspedes;
-
-* O sistema deve gerar relatórios diversos conforme necessidade administrativa. __(Pensar)__
 
 ### 6.2 Requisitos Não Funcionais
 * O sistema deve ser responsivo, adaptando-se bem a celulares e tablets.
