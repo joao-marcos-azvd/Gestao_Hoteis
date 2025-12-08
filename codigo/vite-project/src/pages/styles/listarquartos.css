@@ -174,218 +174,186 @@ body {
   color: var(--cor-escuro);
 }
 
+/* ----------- LISTA DE QUARTOS (CARDS ISOLADOS) ----------- */
+/* ----------- LISTA DE QUARTOS (CARDS ISOLADOS) - NOVO ESTILO PROFISSIONAL ----------- */
 
-/* -------------------- LISTA DE QUARTOS (CARDS) -------------------- */
 .list{
     display:flex;
     flex-direction:column;
-    gap: 20px;
+    gap: 15px; /* Espaço reduzido entre os cards */
+    margin-top: 20px;
 }
-.card{
-  display: flex;
-  gap: 20px;
-  background: var(--cor-branco);
-  border: 1px solid var(--cor-fundo-painel);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: var(--sombra-card);
-  align-items: center;
-  transition: all 0.3s ease;
-  flex-direction: row;
+
+/* CARD principal */
+.quarto-card{
+    display: flex;
+    gap: 25px;
+    background: var(--cor-branco);
+    border: 1px solid var(--cor-fundo-painel); 
+    padding: 20px 25px; /* Mais preenchimento horizontal */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Sombra mais suave */
+    align-items: center;
+    transition: all 0.3s ease;
+    position: relative; /* Para o badge de status */
 }
-.card:hover {
+
+.quarto-card:hover {
     border-color: var(--cor-terracota);
-    background-color: var(--cor-fundo-painel);
+    background-color: var(--cor-fundo-claro); 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
-
-/* photo box */
-.card-photo{
-  width: 200px;
-  min-width: 200px;
-  background: var(--cor-fundo-claro);
-  border: 1px solid var(--cor-marrom-medio);
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: var(--cor-marrom-medio);
-  font-size: 0.9rem;
-  overflow: hidden;
+/* Caixa da imagem (Mais limpa) */
+.quarto-image-wrapper {
+    width: 250px; 
+    min-width: 250px;
+    height: 180px;
+    border-radius: 8px; /* Borda leve */
+    overflow: hidden;
+    background: var(--cor-fundo-painel);
+    /* Remove borda explícita para visual mais clean */
 }
 
-/* imagem dentro da caixa de foto */
-.card-image-wrapper {
-  width: 240px;       /* um pouco mais larga */
-  min-width: 240px;
-  height: 180px;      /* mais alta, mostra mais da foto */
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: var(--cor-fundo-claro);
-  border: 1px solid var(--cor-marrom-medio);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.quarto-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;  /* mantém o preenchimento do card */
-  display: block;
-}
-
-
-/* body area */
-.card-body{
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-
-/* NOVO: Cabeçalho do Card */
-.card-header {
+/* corpo interno */
+.quarto-body{
+    flex: 1;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--cor-fundo-painel);
-    padding-bottom: 10px;
-    margin-bottom: 10px;
 }
-.room-title{
-    margin: 0;
+
+/* header (Agora só com o título e tipo) */
+.quarto-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.room-title {
+    font-size: 1.6rem;
+    font-weight: 800;
     color: var(--cor-escuro);
-    font-size: 1.3rem; 
-    border-left: 4px solid var(--cor-acento);
-    padding-left: 10px;
-    font-weight: 700;
-}
-.room-type-tag {
-    background-color: var(--cor-fundo-painel);
-    color: var(--cor-marrom-medio);
-    padding: 4px 10px;
-    border-radius: var(--radius);
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-
-.room-desc{
     margin: 0;
+    line-height: 1.2;
+    margin-right: 15px;
+}
+
+.room-type-tag {
+    /* Tag de Tipo mais discreta */
     color: var(--cor-marrom-medio);
-    font-size: 0.95rem; 
-    line-height: 1.5;
+    padding: 2px 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.room-desc {
+    font-size: 0.9rem;
+    color: var(--cor-cinza-suave);
+    margin-bottom: 15px;
     flex-grow: 1; 
-    padding-top: 5px;
-    margin-bottom: 10px;
+    line-height: 1.4;
 }
 
-
-/* NOVO: Rodapé do Card */
-.card-footer {
+/* footer isolado */
+.quarto-footer {
     display: flex;
     flex-direction: column;
-    padding-top: 10px;
-    border-top: 1px solid var(--cor-fundo-painel);
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05); /* Linha divisória muito suave */
 }
 
-
-/* meta row */
-.meta-row{
+/* Linha de Status e Preço */
+.meta-row {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
+    align-items: flex-end; /* Alinha o preço por baixo */
 }
 
+/* Preço (Mais destaque) */
 
-/* Display de Preço */
-.price-display{
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-}
 .price-display span {
     font-size: 0.8rem;
-    color: var(--cor-cinza-suave);
-    font-weight: 500;
+    color: var(--cor-marrom-medio);
+    display: block;
+    line-height: 1;
 }
 .price-display strong {
-    font-size: 1.5rem; 
-    color: var(--cor-marrom-medio);
+    font-size: 1.5rem;
+    color: var(--cor-terracota); /* Cor de destaque */
+    font-weight: 800;
+}
+
+/* BADGES DE STATUS (Agora no canto superior direito do CARD) */
+.badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
     font-weight: 700;
+    text-transform: uppercase;
+    color: var(--cor-branco);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Cores Condicionais dos Badges */
+.badge.disponível {
+    background-color: #38a169; /* Verde */
+}
+.badge.ocupado {
+    background-color: #e53e3e; /* Vermelho */
+}
+.badge.limpeza, .badge.manutenção {
+    background-color: var(--cor-acento); /* Dourado/Amarelo */
+    color: var(--cor-escuro);
+}
+.badge.indefinido {
+    background-color: var(--cor-cinza-suave);
 }
 
 
-/* badges */
-.badge{
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 50px;
-  font-weight: 700;
-  font-size: 0.75rem;
-  text-transform: uppercase;
+/* AÇÕES (Botões de Ícone) */
+.quarto-actions{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end; /* Alinha os botões para a direita */
 }
-.badge.ocupado{
-  background: #F8D9D9; 
-  color: #B52F2F;
-  border: 1px solid #B52F2F;
-}
-.badge.disponivel{
-  background: #D9F8D9; 
-  color: #2F992F;
-  border: 1px solid #2F992F;
+.quarto-actions .icons {
+    display: flex;
+    gap: 8px;
 }
 
-
-/* actions area */
-.card-actions{
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  justify-content: space-between; 
-  padding-top: 5px;
-}
-.icons{display:flex;gap: 8px}
-.icon{
-  background: var(--cor-fundo-claro);
-  border: 1px solid var(--cor-cinza-suave);
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
-  line-height: 1;
-}
-.icon:hover{
-    background: var(--cor-acento);
-    border-color: var(--cor-acento);
+.quarto-actions .icon {
+    /* Estilo do botão de ícone (mais discreto) */
+    background: transparent;
+    border: 1px solid var(--cor-fundo-painel);
+    border-radius: 4px; /* Quadrado arredondado */
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+    color: var(--cor-marrom-medio);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
 }
 
-
-/* responsiveness */
-@media (max-width: 1024px) {
-    .sidebar { width: 220px; }
-    .content { padding: 30px 40px; }
-}
-
-@media (max-width: 768px){
-  .dashboard-container{flex-direction:column}
-  .sidebar{width:100%; height:auto; padding:15px; flex-direction:row; justify-content:space-between; align-items:center}
-  .sidebar nav{display:none} 
-  
-  .card{flex-direction:column}
-  .card-photo,
-  .card-image-wrapper{
-    width:100%;
-    min-width:auto;
-    height:180px;
-  }
-  .card-actions{justify-content:space-between; margin-top:6px}
-  .controls{flex-direction:column;align-items:stretch}
-  .search{max-width:100%}
+.quarto-actions .icon:hover {
+    background: var(--cor-terracota);
+    border-color: var(--cor-terracota);
+    color: var(--cor-branco);
+    transform: translateY(-1px);
 }

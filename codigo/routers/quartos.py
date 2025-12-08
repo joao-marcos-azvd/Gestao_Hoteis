@@ -18,7 +18,7 @@ def get_session():
         yield session
 
 
-# pasta para salvar imagens dos quartos
+# Pasta para salvar imagens dos quartos
 STATIC_QUARTOS_DIR = Path("static/quartos")
 STATIC_QUARTOS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -35,8 +35,20 @@ def listar_quartos(status: str | None = None, session: Session = Depends(get_ses
 
 
 # ============================
-# BUSCAR UM QUARTO POR ID
-# (necessário para tela de edição)
+# BUSCAR UM QUARTO POR ID (NOVA ROTA)
+# Compatível com: GET /quartos/3
+# ============================
+@router.get("/{quarto_id}")
+def buscar_quarto_por_id(quarto_id: int, session: Session = Depends(get_session)):
+    quarto = session.get(Quarto, quarto_id)
+    if not quarto:
+        raise HTTPException(status_code=404, detail="Quarto não encontrado")
+    return quarto
+
+
+# ============================
+# BUSCAR UM QUARTO POR NÚMERO
+# (mantido, caso você precise)
 # ============================
 @router.get("/numero/{numero}")
 def buscar_quarto_por_numero(numero: int, session: Session = Depends(get_session)):
@@ -49,7 +61,7 @@ def buscar_quarto_por_numero(numero: int, session: Session = Depends(get_session
 
 
 # ============================
-# CRIAR UM NOVO QUARTO (com imagem opcional)
+# CRIAR UM NOVO QUARTO
 # ============================
 @router.post("/")
 async def criar_quarto(
@@ -73,7 +85,6 @@ async def criar_quarto(
 
     imagem_url = None
     if imagem:
-        # em produção, gere um nome único (UUID, timestamp, etc.)
         file_path = STATIC_QUARTOS_DIR / imagem.filename
         with file_path.open("wb") as f:
             f.write(await imagem.read())
@@ -96,8 +107,7 @@ async def criar_quarto(
 
 
 # ============================
-# EDITAR UM QUARTO EXISTENTE
-# (atualiza dados e, opcionalmente, a imagem)
+# EDITAR UM QUARTO
 # ============================
 @router.put("/{quarto_id}")
 async def editar_quarto(
@@ -116,6 +126,7 @@ async def editar_quarto(
     if not quarto:
         raise HTTPException(status_code=404, detail="Quarto não encontrado")
 
+    # atualizar dados
     quarto.numero = numero
     quarto.capacidade = capacidade
     quarto.tipo = tipo
@@ -123,6 +134,7 @@ async def editar_quarto(
     quarto.status = status
     quarto.recursos = recursos
 
+    # atualizar imagem (opcional)
     if imagem:
         file_path = STATIC_QUARTOS_DIR / imagem.filename
         with file_path.open("wb") as f:

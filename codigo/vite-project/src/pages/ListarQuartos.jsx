@@ -1,31 +1,26 @@
-// src/pages/ListarQuartos.jsx
+// Updated ListarQuartos.jsx with isolated card classes
 import { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import api from "../api/api";
 import "./styles/listarquartos.css";
 import logo from "../assets/logomarca(1).png";
 
-// base da API (ex.: http://localhost:8000)
 const API_BASE = api.defaults.baseURL || "";
 
 export default function ListarQuartos() {
   const [quartos, setQuartos] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
-  // Lógica do Menu
   const getLinkClass = ({ isActive }) =>
     isActive ? "link-item active" : "link-item";
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    navigate("/login");
-  };
-
-  // Carregar dados
   async function load() {
     try {
       const res = await api.get("/quartos");
       setQuartos(res.data);
+      setFiltered(res.data);
     } catch (err) {
       console.error("Erro ao carregar quartos", err);
     }
@@ -35,12 +30,28 @@ export default function ListarQuartos() {
     load();
   }, []);
 
-  // Exclusão
+  function handleSearch(e) {
+    const value = e.target.value.toLowerCase();
+    setSearch(value);
+
+    const results = quartos.filter((q) =>
+      q.numero.toString().includes(value) ||
+      q.tipo?.toLowerCase().includes(value) ||
+      q.status?.toLowerCase().includes(value) ||
+      q.recursos?.toLowerCase().includes(value)
+    );
+
+    setFiltered(results);
+  }
+
   async function handleDelete(id) {
     if (!confirm("Excluir este quarto?")) return;
+
     try {
       await api.delete(`/quartos/${id}`);
-      setQuartos(quartos.filter((q) => q.id !== id));
+      const updated = quartos.filter((q) => q.id !== id);
+      setQuartos(updated);
+      setFiltered(updated);
     } catch (err) {
       alert("Erro ao excluir quarto");
     }
@@ -48,54 +59,20 @@ export default function ListarQuartos() {
 
   return (
     <div className="dashboard-container">
-      {/* Menu Lateral (Sidebar) */}
       <aside className="sidebar">
         <img src={logo} alt="Logo do Hotel" className="logo-img" />
         <nav>
           <ul>
-            <li>
-              <NavLink to="/" className={getLinkClass}>
-                Início
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/quartos" className={getLinkClass}>
-                Quartos
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/quartos/cadastrar" className={getLinkClass}>
-                Cadastrar Quarto
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/hospedes" className={getLinkClass}>
-                Hóspedes
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/hospedes/cadastrar" className={getLinkClass}>
-                Cadastrar Hóspede
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/planos" className={getLinkClass}>
-                Planos
-              </NavLink>
-            </li>
-            {/* Item de Logout (opcional)
-            <li>
-              <button className="link-item logout-link" onClick={handleLogout}>
-                Sair
-              </button>
-            </li>
-            */}
+            <li><NavLink to="/" className={getLinkClass}>Início</NavLink></li>
+            <li><NavLink to="/quartos" className={getLinkClass}>Quartos</NavLink></li>
+            <li><NavLink to="/quartos/cadastrar" className={getLinkClass}>Cadastrar Quarto</NavLink></li>
+            <li><NavLink to="/hospedes" className={getLinkClass}>Hóspedes</NavLink></li>
+            <li><NavLink to="/hospedes/cadastrar" className={getLinkClass}>Cadastrar Hóspede</NavLink></li>
+            
           </ul>
         </nav>
       </aside>
-      {/* Fim do Menu Lateral */}
 
-      {/* Conteúdo Principal */}
       <main className="content">
         <h1>Quartos do Hotel</h1>
         <p className="subtitle">
@@ -103,52 +80,49 @@ export default function ListarQuartos() {
         </p>
 
         <section className="controls">
-          <div className="search">
-            <input placeholder="Pesquisar por número, tipo ou status..." />
+          <div className="search with-icon">
+            <input
+              placeholder="Pesquisar por número, tipo, status ou recursos..."
+              value={search}
+              onChange={handleSearch}
+            />
           </div>
-          <button
-            className="btn add"
-            onClick={() => navigate("/quartos/cadastrar")}
-          >
+
+          <button className="btn add" onClick={() => navigate("/quartos/cadastrar")}>
             + NOVO QUARTO
           </button>
         </section>
 
         <section className="list">
-          {quartos.length === 0 ? (
+          {filtered.length === 0 ? (
             <p className="empty-state">Nenhum quarto encontrado.</p>
           ) : (
-            quartos.map((quarto) => (
-              <article key={quarto.id} className="card">
-                {/* Imagem do quarto, se o backend retornar imagem_url */}
+            filtered.map((quarto) => (
+              <article key={quarto.id} className="quarto-card">
+                
                 {quarto.imagem_url && (
-                  <div className="card-image-wrapper">
+                  <div className="quarto-image-wrapper">
                     <img
                       src={`${API_BASE}${quarto.imagem_url}`}
                       alt={`Quarto ${quarto.numero}`}
-                      className="card-image"
+                      className="quarto-image"
                     />
                   </div>
                 )}
 
-                <div className="card-body">
-                  <div className="card-header">
+                <div className="quarto-body">
+                  <div className="quarto-header">
                     <h3 className="room-title">Quarto {quarto.numero}</h3>
-                    <span className="room-type-tag">
-                      {quarto.tipo || "Padrão"}
-                    </span>
+                    <span className="room-type-tag">{quarto.tipo || "Padrão"}</span>
                   </div>
 
                   <p className="room-desc">
-                    {quarto.recursos ||
-                      "Nenhuma descrição ou recurso fornecido."}
+                    {quarto.recursos || "Nenhuma descrição ou recurso fornecido."}
                   </p>
 
-                  <div className="card-footer">
+                  <div className="quarto-footer">
                     <div className="meta-row">
-                      <span
-                        className={`badge ${quarto.status?.toLowerCase()}`}
-                      >
+                      <span className={`badge ${quarto.status?.toLowerCase()}`}>
                         {quarto.status || "Indefinido"}
                       </span>
 
@@ -160,7 +134,7 @@ export default function ListarQuartos() {
                       </div>
                     </div>
 
-                    <div className="card-actions">
+                    <div className="quarto-actions">
                       <div className="icons">
                         <button
                           className="icon"
@@ -172,9 +146,7 @@ export default function ListarQuartos() {
                         <button
                           className="icon"
                           title="Editar"
-                          onClick={() =>
-                            navigate(`/quartos/editar/${quarto.id}`)
-                          }
+                          onClick={() => navigate(`/quartos/editar/${quarto.id}`)}
                         >
                           ✏️
                         </button>
@@ -186,8 +158,8 @@ export default function ListarQuartos() {
             ))
           )}
         </section>
+
       </main>
-      {/* Fim do Conteúdo Principal */}
     </div>
   );
 }

@@ -99,11 +99,7 @@ export default function CadastrarQuartos() {
                 Cadastrar Hóspede
               </Link>
             </li>
-            <li>
-              <Link to="/planos" className="link-item">
-                Planos
-              </Link>
-            </li>
+           
           </ul>
         </nav>
       </aside>

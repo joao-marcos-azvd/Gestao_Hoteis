@@ -42,9 +42,7 @@ export default function Home() {
                         <li>
                             <NavLink to="/hospedes/cadastrar" className={getLinkClass}>Cadastrar Hóspede</NavLink>
                         </li>
-                        <li>
-                            <NavLink to="/planos" className={getLinkClass}>Planos</NavLink>
-                        </li>
+                       
                         {/* NOVO: Item de Logout */}
                         <li>
                             <button 
@@ -79,11 +77,7 @@ export default function Home() {
                         <span className="card-link-text">Acessar Hóspedes →</span>
                     </NavLink>
                     
-                    <NavLink to="/planos" className="card">
-                        <span className="card-title">Planos e Serviços</span>
-                        <span className="card-subtitle">Configure planos de tarifas e adicione novos serviços para os hóspedes.</span>
-                        <span className="card-link-text">Acessar Planos →</span>
-                    </NavLink>
+                  
                     
                 </div>
             </main>

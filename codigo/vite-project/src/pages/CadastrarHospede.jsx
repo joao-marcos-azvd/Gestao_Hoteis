@@ -47,7 +47,7 @@ export default function CadastrarHospede() {
                         {/* Cadastrar Hóspede: Agora, este será o único ativo em /hospedes/cadastrar */}
                         <li><NavLink to="/hospedes/cadastrar" className={getLinkClass}>Cadastrar Hóspede</NavLink></li>
                         
-                        <li><NavLink to="/planos" className={getLinkClass} end>Planos</NavLink></li>
+                        
                         
                     </ul>
                 </nav>

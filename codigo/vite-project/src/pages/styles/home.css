@@ -1,5 +1,5 @@
 :root {
-  /* Variáveis de Cor */
+  /* Variáveis de Cor (Mantenho as suas, agora centralizadas) */
   --bege-claro: #f2e8dc;
   --marrom-escuro: #5a3821;
   --marrom-claro: #7a5d3a;
@@ -20,20 +20,20 @@
 .dashboard-container {
     display: flex;
     min-height: 100vh;
-    background-color: var(--bege-rosado);
+    background-color: var(--bege-rosado); /* Fundo suave */
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--marrom-escuro);
     font-size: 16px;
 }
 
-/* -------------------- MENU LATERAL -------------------- */
+/* -------------------- MENU LATERAL (SIDEBAR) -------------------- */
 .sidebar {
     width: 280px;
     padding: 25px 20px 20px;
     display: flex;
     flex-direction: column;
-    background-color: var(--marrom-escuro);
-    box-shadow: 6px 0 15px var(--preto-escurecido);
+    background-color: var(--marrom-escuro); /* Cor mais escura para maior contraste e foco */
+    box-shadow: 6px 0 15px var(--preto-escurecido); /* Adicionado/Ajustado */
     z-index: 10;
 }
 
@@ -43,7 +43,7 @@
     padding: 0 10px;
     margin-bottom: 35px;
     border-radius: 8px;
-    box-shadow: none;
+    box-shadow: none; /* 👈 MUDANÇA: Sombra da logo removida */
 }
 
 .sidebar nav {
@@ -51,7 +51,7 @@
 }
 
 .sidebar ul {
-    list-style: none;
+    list-style: none; /* Remove bullet points nativos */
     padding: 0;
     margin: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.15);
@@ -62,9 +62,7 @@
     margin: 8px 0;
 }
 
-/* -------------------- LINKS DO MENU (AJUSTE COMPLETO) -------------------- */
-.sidebar a,
-.sidebar button {
+.sidebar a {
     text-decoration: none;
     color: var(--bege-claro);
     background-color: transparent;
@@ -74,52 +72,41 @@
     border-radius: 8px;
     transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
     font-weight: 500;
-    width: 100%;
-    cursor: pointer;
-    font-size: 1rem;
-    text-align: left;
-
-    /* RESET DO BOTÃO — isso corrige a diferença do "Sair" */
-    border: none;
-    outline: none;
-    appearance: none;
 }
 
-/* LINK OU BOTÃO ATIVO */
-.sidebar a.active,
-.sidebar button.active {
-    background-color: var(--marrom-alaranjado);
+/* 👈 NOVO ESTILO: Link Ativo */
+.sidebar a.active {
+    background-color: var(--marrom-alaranjado); /* Cor de destaque */
     color: var(--branco);
     font-weight: 700;
-    box-shadow: none;
-    transform: none;
+    box-shadow: none; /* Desativa sombra/translate do hover quando ativo */
+    transform: none; 
 }
 
-/* HOVER (links e botão) — agora todos ficam iguais */
-.sidebar a:hover,
-.sidebar button:hover {
-    background-color: var(--marrom-claro);
+.sidebar a:hover {
+    background-color: var(--marrom-claro); /* Cor de hover mais quente e visível */
     color: var(--branco);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    transform: translateX(5px);
+    transform: translateX(5px); /* Movimento de destaque */
 }
 
-/* Remoção de pseudo-elemento */
-.sidebar a::before,
-.sidebar button::before {
-    content: none;
+/* REMOÇÃO DOS PONTOS (ÍCONES SIMULADOS) DO MENU */
+.sidebar a::before {
+    content: none; /* Remove o conteúdo do pseudo-elemento */
+    margin-right: 0;
 }
 
-/* -------------------- CONTEÚDO PRINCIPAL -------------------- */
+
+/* -------------------- CONTEÚDO PRINCIPAL (Inalterado) -------------------- */
 .content {
     flex: 1;
-    padding: 60px 80px;
+    padding: 60px 40px ; /* Mais espaço para um visual mais premium */
     overflow-y: auto;
 }
 
 .content h1 {
     color: var(--marrom-escuro);
-    font-size: 2.5rem;
+    font-size: 2.5rem; 
     margin-bottom: 5px;
     border-bottom: 3px solid var(--marrom-alaranjado);
     display: inline-block;
@@ -129,80 +116,83 @@
 
 .subtitle {
     color: var(--marrom-medio);
+    font-style: normal;
     margin-bottom: 50px;
     font-size: 1.1rem;
     padding-left: 2px;
 }
 
-/* -------------------- CARDS -------------------- */
+/* -------------------- CARDS DE NAVEGAÇÃO DETALHADOS (Inalterado) -------------------- */
+/* -------------------- CARDS DE NAVEGAÇÃO (AGORA COM !important) -------------------- */
 .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
-    margin-top: 30px;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+    gap: 30px !important;
+    margin-top: 30px !important;
 }
 
 .card {
-    background: var(--branco);
-    color: var(--marrom-escuro);
-    padding: 40px;
-    border-radius: 16px;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-    min-height: 200px;
-    border: 1px solid var(--bege-medio);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease-in-out;
-    position: relative;
-    overflow: hidden;
+    background: var(--branco) !important;
+    color: var(--marrom-escuro) !important;
+    padding: 40px !important;
+    border-radius: 16px !important;
+    text-decoration: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    min-height: 200px !important;
+    border: 1px solid var(--bege-medio) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease-in-out !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-.card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 6px;
-    background-color: var(--marrom-alaranjado);
-    transition: transform 0.3s ease-in-out;
-    transform: translateY(-100%);
+.card:before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 6px !important;
+    background-color: var(--marrom-alaranjado) !important;
+    transition: transform 0.3s ease-in-out !important;
+    transform: translateY(-100%) !important;
 }
 
 .card-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 5px;
-    color: var(--marrom-claro);
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 5px !important;
+    color: var(--marrom-claro) !important;
 }
 
 .card-subtitle {
-    font-size: 0.95rem;
-    font-weight: 400;
-    color: var(--marrom-medio);
-    margin-bottom: 25px;
+    font-size: 0.95rem !important;
+    font-weight: 400 !important;
+    color: var(--marrom-medio) !important;
+    margin-bottom: 25px !important;
 }
 
 .card-link-text {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--marrom-alaranjado);
-    margin-top: auto;
-    display: inline-block;
-    padding-right: 5px;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: var(--marrom-alaranjado) !important;
+    margin-top: auto !important;
+    display: inline-block !important;
+    padding-right: 5px !important;
 }
 
-/* HOVER DO CARD */
+/* HOVER */
 .card:hover {
-    background-color: var(--bege-claro);
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    border-color: var(--marrom-alaranjado);
+    color: var(--marrom-escuro) !important;
+    background-color: var(--bege-claro) !important;
+    transform: translateY(-5px) !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1) !important;
+    border-color: var(--marrom-alaranjado) !important;
 }
 
 .card:hover::before {
-    transform: translateY(0);
+    transform: translateY(0) !important;
 }

@@ -11,7 +11,7 @@ import ListarQuartos from "./pages/ListarQuartos";
 import Hospedes from "./pages/Hospedes";
 import CadastrarHospede from "./pages/CadastrarHospede";
 import EditarHospede from "./pages/EditarHospede";
-import Planos from "./pages/Planos";
+
 
 export default function App() {
   return (
@@ -23,7 +23,7 @@ export default function App() {
 
         {/* protegidas */}
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/planos" element={<ProtectedRoute><Planos /></ProtectedRoute>} />
+        
 
         {/* quartos */}
         <Route path="/quartos" element={<ProtectedRoute><ListarQuartos /></ProtectedRoute>} />
