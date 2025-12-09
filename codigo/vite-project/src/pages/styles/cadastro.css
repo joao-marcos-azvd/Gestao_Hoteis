@@ -8,67 +8,80 @@
 .register-page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1.2fr 1.1fr;
+  grid-template-columns: 1fr 1fr;
+  background: #f2e8dc;
 }
 
-/* Esquerda */
+/* Lado esquerdo - IMAGEM */
 .register-left {
   position: relative;
   overflow: hidden;
   background-image: url('../../assets/figura(4).png');
   background-repeat: no-repeat;
-  background-size: 100%;
+  background-size: cover;
   background-position: center;
 }
 
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 60%);
+  background: linear-gradient(90deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.4) 60%);
 }
 
-/* Direita */
+/* Lado direito - FORMULÁRIO */
 .register-right {
-  background: #f2e8dc;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
+  background: #f2e8dc;
 }
 
-.form-card {
+.register-container {
   width: 100%;
-  max-width: 430px;
+  max-width: 450px; /* reduzido de 500px */
+  background: #f2e8dc;
+}
+
+.register-card {
+  width: 100%;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.register-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #5a3821;
+  margin-bottom: 20px;
   text-align: center;
 }
 
-.form-title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #5a3821;
-  margin-bottom: 32px;
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 12px;
 }
 
 .form-group {
-  margin-bottom: 16px;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  text-align: left;
+  gap: 4px;
 }
 
 .form-group label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #7a5d3a;
 }
 
 .form-group input {
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid #c8b19a;
   background: #e4d5c2;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   outline: none;
 }
 
@@ -77,13 +90,9 @@
   box-shadow: 0 0 0 2px rgba(161, 120, 87, 0.18);
 }
 
-.form-group > #cpf {
-  border-radius: 999px !important;
-}
-
-.btn-submit {
+.btn-register {
   display: block;
-  margin: 22px auto 0;
+  margin: 20px auto 0;
   padding: 10px 40px;
   border-radius: 999px;
   border: none;
@@ -92,10 +101,11 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   cursor: pointer;
+  transition: filter 0.2s;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.btn-submit:hover {
+.btn-register:hover {
   filter: brightness(0.96);
 }
 
@@ -103,10 +113,12 @@
   margin-top: 10px;
   color: #d63031;
   font-size: 0.9rem;
+  text-align: center;
 }
 
 .login-link {
   margin-top: 18px;
+  text-align: center;
   font-size: 0.9rem;
   color: #7a5d3a;
 }
@@ -118,17 +130,31 @@
   margin-left: 4px;
 }
 
+.login-link a:hover {
+  text-decoration: underline;
+}
+
 /* Responsivo */
 @media (max-width: 950px) {
   .register-page {
     grid-template-columns: 1fr;
+    grid-template-rows: 40vh 1fr;
   }
 
   .register-left {
-    display: none;
+    height: 40vh;
   }
 
   .register-right {
-    padding: 40px 20px;
+    padding: 30px 20px;
+  }
+
+  .register-card {
+    padding: 20px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
   }
 }

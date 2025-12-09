@@ -50,85 +50,93 @@ export default function Register() {
       </section>
 
       <section className="register-right">
-        <div className="form-card">
-          <h1 className="form-title">Cadastro</h1>
+        <div className="register-container">
+          <div className="register-card">
+            <h1 className="register-title">Cadastro</h1>
 
-          <form onSubmit={handleRegister}>
-            <div className="form-group">
-              <label htmlFor="email">EMAIL</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Digite seu e-mail"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
+            <form onSubmit={handleRegister}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="email">EMAIL</label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Digite seu e-mail"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-            <div className="form-group">
-              <label htmlFor="cpf">CPF (opcional)</label>
-              <input
-                id="cpf"
-                name="cpf"
-                type="text"
-                placeholder="Digite seu CPF"
-                value={form.cpf}
-                onChange={handleChange}
-              />
-            </div>
+                <div className="form-group">
+                  <label htmlFor="cpf">CPF (opcional)</label>
+                  <input
+                    id="cpf"
+                    name="cpf"
+                    type="text"
+                    placeholder="Digite seu CPF"
+                    value={form.cpf}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="cnpj">CNPJ</label>
-              <input
-                id="cnpj"
-                name="cnpj"
-                type="text"
-                placeholder="Digite seu CNPJ"
-                value={form.cnpj}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="cnpj">CNPJ</label>
+                  <input
+                    id="cnpj"
+                    name="cnpj"
+                    type="text"
+                    placeholder="Digite seu CNPJ"
+                    value={form.cnpj}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="senha">SENHA</label>
-              <input
-                id="senha"
-                name="senha"
-                type="password"
-                placeholder="Digite sua senha"
-                value={form.senha}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="senha">SENHA</label>
+                  <input
+                    id="senha"
+                    name="senha"
+                    type="password"
+                    placeholder="Digite sua senha"
+                    value={form.senha}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-            <div className="form-group">
-              <label htmlFor="confirmarSenha">CONFIRMAR SENHA</label>
-              <input
-                id="confirmarSenha"
-                name="confirmarSenha"
-                type="password"
-                placeholder="Confirme sua senha"
-                value={form.confirmarSenha}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                <div className="form-group">
+                  <label htmlFor="confirmarSenha">CONFIRMAR SENHA</label>
+                  <input
+                    id="confirmarSenha"
+                    name="confirmarSenha"
+                    type="password"
+                    placeholder="Confirme sua senha"
+                    value={form.confirmarSenha}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
 
-            <button type="submit" className="btn-submit">
-              CADASTRAR-SE
-            </button>
+              <button type="submit" className="btn-register">
+                CADASTRAR-SE
+              </button>
 
-            {error && <p className="register-error">{error}</p>}
-          </form>
+              {error && <p className="register-error">{error}</p>}
+            </form>
 
-          <p className="login-link">
-            Já tenho conta  
-            <Link to="/login"> entrar</Link>
-          </p>
+            <p className="login-link">
+              Já tenho conta  
+              <Link to="/login"> entrar</Link>
+            </p>
+          </div>
         </div>
       </section>
     </div>
