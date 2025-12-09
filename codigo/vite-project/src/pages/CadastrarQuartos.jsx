@@ -1,8 +1,9 @@
 // src/pages/CadastrarQuartos.jsx
 import { useState } from "react";
 import api from "../api/api";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import "./styles/cadastrarquartos.css";
+import "../pages/styles/home.css"; // garante estilo igual do menu
 import logo from "../assets/logomarca(1).png";
 
 export default function CadastrarQuartos() {
@@ -15,10 +16,20 @@ export default function CadastrarQuartos() {
     recursos: "",
   });
 
-  const [imagemFile, setImagemFile] = useState(null);      // arquivo da imagem
-  const [imagemPreview, setImagemPreview] = useState("");  // preview local
+  const [imagemFile, setImagemFile] = useState(null);
+  const [imagemPreview, setImagemPreview] = useState("");
 
   const navigate = useNavigate();
+
+  // ====== FUNÇÃO PADRÃO PARA LINKS DO MENU ======
+  const getLinkClass = ({ isActive }) =>
+    isActive ? "link-item active" : "link-item";
+
+  // ====== FUNÇÃO DE LOGOUT PADRÃO ======
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/login");
+  };
 
   function handleChange(e) {
     setDados({ ...dados, [e.target.name]: e.target.value });
@@ -49,7 +60,7 @@ export default function CadastrarQuartos() {
       formData.append("recursos", dados.recursos || "");
 
       if (imagemFile) {
-        formData.append("imagem", imagemFile); // campo "imagem" no backend
+        formData.append("imagem", imagemFile);
       }
 
       await api.post("/quartos/", formData, {
@@ -68,49 +79,83 @@ export default function CadastrarQuartos() {
 
   return (
     <div className="dashboard-container">
-      {/* 1. MENU LATERAL (SIDEBAR) */}
+      {/* ========== MENU LATERAL PADRÃO ========== */}
       <aside className="sidebar">
         <img src={logo} alt="Logo do Hotel" className="logo-img" />
+
         <nav>
           <ul>
             <li>
-              <Link to="/" className="link-item">
+              <NavLink to="/" end className={getLinkClass}>
                 Início
-              </Link>
+              </NavLink>
+            </li>
+
+            {/* Quartos */}
+            <li>
+              <NavLink to="/quartos" end className={getLinkClass}>
+                Quartos
+              </NavLink>
             </li>
 
             <li>
-              <Link to="/quartos" className="link-item">
-                Quartos
-              </Link>
-            </li>
-            <li>
-              <Link to="/quartos/cadastrar" className="link-item active">
+              <NavLink to="/quartos/cadastrar" className={getLinkClass}>
                 Cadastrar Quarto
-              </Link>
+              </NavLink>
             </li>
+
+            {/* Hóspedes */}
             <li>
-              <Link to="/hospedes" className="link-item">
+              <NavLink to="/hospedes" end className={getLinkClass}>
                 Hóspedes
-              </Link>
+              </NavLink>
             </li>
+
             <li>
-              <Link to="/hospedes/cadastrar" className="link-item">
+              <NavLink to="/hospedes/cadastrar" className={getLinkClass}>
                 Cadastrar Hóspede
-              </Link>
+              </NavLink>
             </li>
-           
+
+            {/* Reservas */}
+            <li>
+              <NavLink to="/reservas" end className={getLinkClass}>
+                Reservas
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink to="/reservas/cadastrar" className={getLinkClass}>
+                Cadastrar Reserva
+              </NavLink>
+            </li>
+
+            {/* Sair */}
+            <li>
+              <button
+                className="link-item logout-link"
+                onClick={handleLogout}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
+                Sair
+              </button>
+            </li>
           </ul>
         </nav>
       </aside>
 
-      {/* 2. CONTEÚDO PRINCIPAL COM FORMULÁRIO */}
+      {/* ========== CONTEÚDO PRINCIPAL ========== */}
       <main className="content">
         <header className="page-header">
           <h1>Cadastro de Novo Quarto</h1>
           <p className="subtitle">
-            Insira as informações básicas, capacidade, tipo, recursos e a foto
-            do quarto.
+            Insira as informações básicas, capacidade, tipo, recursos e a foto do
+            quarto.
           </p>
         </header>
 
@@ -118,7 +163,6 @@ export default function CadastrarQuartos() {
           {/* Campos Principais */}
           <div className="fields">
             <div className="row">
-              {/* Número do Quarto */}
               <div className="field">
                 <label htmlFor="numero">Número</label>
                 <input
@@ -131,7 +175,6 @@ export default function CadastrarQuartos() {
                 />
               </div>
 
-              {/* Capacidade */}
               <div className="field">
                 <label htmlFor="capacidade">Capacidade Máxima</label>
                 <input
@@ -144,7 +187,6 @@ export default function CadastrarQuartos() {
                 />
               </div>
 
-              {/* Tipo */}
               <div className="field">
                 <label htmlFor="tipo">Tipo de Quarto</label>
                 <select
@@ -163,7 +205,6 @@ export default function CadastrarQuartos() {
             </div>
 
             <div className="row">
-              {/* Preço Diária */}
               <div className="field currency-field">
                 <label htmlFor="preco_diaria">Preço da Diária</label>
                 <div className="currency">
@@ -180,7 +221,6 @@ export default function CadastrarQuartos() {
                 </div>
               </div>
 
-              {/* Status */}
               <div className="field">
                 <label htmlFor="status">Status Atual</label>
                 <select
@@ -197,11 +237,8 @@ export default function CadastrarQuartos() {
               </div>
             </div>
 
-            {/* Imagem do quarto */}
             <div className="field full-width">
-              <label htmlFor="imagem" className="label-full">
-                Carregue a imagem do quarto
-              </label>
+              <label htmlFor="imagem">Carregue a imagem do quarto</label>
               <input
                 id="imagem"
                 name="imagem"
@@ -209,11 +246,13 @@ export default function CadastrarQuartos() {
                 accept="image/*"
                 onChange={handleImagemChange}
               />
+
               {imagemFile && (
                 <p style={{ marginTop: 6, fontSize: "0.85rem" }}>
                   Arquivo selecionado: {imagemFile.name}
                 </p>
               )}
+
               {imagemPreview && (
                 <div style={{ marginTop: 10 }}>
                   <img
@@ -229,11 +268,8 @@ export default function CadastrarQuartos() {
               )}
             </div>
 
-            {/* Recursos/Descrição (Full Width) */}
             <div className="field full-width">
-              <label htmlFor="recursos" className="label-full">
-                Recursos e Descrição (Opcional)
-              </label>
+              <label htmlFor="recursos">Recursos e Descrição (Opcional)</label>
               <textarea
                 id="recursos"
                 name="recursos"
@@ -243,7 +279,6 @@ export default function CadastrarQuartos() {
             </div>
           </div>
 
-          {/* Ações do Formulário */}
           <div className="form-actions">
             <button type="submit" className="btn add">
               Salvar Quarto

@@ -12,6 +12,12 @@ export default function CadastrarHospede() {
     // Função para aplicar a classe 'active' dinamicamente
     const getLinkClass = ({ isActive }) => (isActive ? "link-item active" : "link-item");
 
+    // ====== FUNÇÃO DE LOGOUT PADRÃO ======
+    const handleLogout = () => {
+        localStorage.removeItem("authToken");
+        navigate("/login");
+    };
+
     function change(e) { 
         setForm({ ...form, [e.target.name]: e.target.value }); 
     }
@@ -46,9 +52,28 @@ export default function CadastrarHospede() {
                         
                         {/* Cadastrar Hóspede: Agora, este será o único ativo em /hospedes/cadastrar */}
                         <li><NavLink to="/hospedes/cadastrar" className={getLinkClass}>Cadastrar Hóspede</NavLink></li>
+
+                        {/* Reservas: Adicionamos `end` */}
+                        <li><NavLink to="/reservas" className={getLinkClass} end>Reservas</NavLink></li>
                         
+                        {/* Cadastrar Reserva: Agora, este será o único ativo em /reservas/cadastrar */}
+                        <li><NavLink to="/reservas/cadastrar" className={getLinkClass}>Cadastrar Reserva</NavLink></li>
                         
-                        
+                        {/* Sair - mantém o mesmo estilo */}
+                        <li>
+                            <button
+                                className="link-item logout-link"
+                                onClick={handleLogout}
+                                style={{
+                                    background: "none",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    textAlign: "left",
+                                }}
+                            >
+                                Sair
+                            </button>
+                        </li>
                     </ul>
                 </nav>
             </aside>

@@ -1,0 +1,249 @@
+/* ================================
+   ESTILO PADRÃO — RESERVAS
+   Seguindo o mesmo padrão do sistema
+================================ */
+
+/* layout geral */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  gap: 20px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* título da página */
+.page-title {
+  font-size: 26px;
+  font-weight: bold;
+  color: #5a3821;
+}
+
+/* ================================
+   TABELA PADRÃO — ListarReservas
+================================ */
+.table-container {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  margin-top: 10px;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container th {
+  background: #7a5d3a;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 6px 6px 0 0;
+}
+
+.table-container td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.table-container tr:hover {
+  background: #f2e8dc;
+  transition: 0.2s;
+}
+
+/* botões dentro da tabela */
+.btn-edit, .btn-delete {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-edit {
+  background: #5a3821;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #7a5d3a;
+}
+
+.btn-delete {
+  background: #b62b2b;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #d43a3a;
+}
+
+/* botão cadastrar */
+.btn-add {
+  width: fit-content;
+  background: #5a3821;
+  color: white;
+  padding: 12px 18px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-add:hover {
+  background: #7a5d3a;
+}
+
+/* ================================
+   FORMULÁRIO — Cadastrar/Editar
+================================ */
+.form-card {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.form-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 17px;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #5a3821;
+}
+
+.form-group input,
+.form-group select{
+  padding: 12px;
+  border: 1px solid #c2b7aa;
+  border-radius: 10px;
+  outline: none;
+  font-size: 16px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #7a5d3a;
+}
+
+/* botões do formulário */
+.btn-submit {
+  background: #5a3821;
+  color: white;
+  padding: 12px;
+  width: 100%;
+  font-size: 17px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-submit:hover {
+  background: #7a5d3a;
+}
+
+.btn-back {
+  margin-top: 10px;
+  width: 100%;
+  background: #b4a28b;
+  color: white;
+  padding: 12px;
+  font-size: 17px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-back:hover {
+  background: #a18c72;
+}
+
+/* ================================
+   CHECK-IN & CHECK-OUT
+================================ */
+
+.check-card {
+  background: white;
+  padding: 28px;
+  border-radius: 16px;
+  max-width: 550px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.check-title {
+  font-size: 24px;
+  color: #5a3821;
+  font-weight: bold;
+}
+
+.check-info {
+  font-size: 18px;
+  color: #333;
+}
+
+.check-confirm {
+  padding: 12px 20px;
+  border: none;
+  background: #5a3821;
+  color: white;
+  font-size: 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.check-confirm:hover {
+  background: #7a5d3a;
+}
+
+
+/* WRAPPER DAS DATAS — igual aos outros inputs */
+.date-wrapper {
+    width: 100%;
+    background: #fff;
+    border: 2px solid #e0d4c4;
+    border-radius: 10px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    height: 45px;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Input interno */
+.date-wrapper input[type="date"] {
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 0 12px;
+    font-size: 1rem;
+    background: transparent;
+    outline: none;
+    color: #5a3821;
+}
+
+/* Foco */
+.date-wrapper:focus-within {
+    border-color: #c6a27a;
+    box-shadow: 0 0 4px rgba(198, 162, 122, 0.7);
+}
+
+input[type="date"]::-webkit-inner-spin-button {
+    display: none !important;
+}
+
+/* NÃO mexer no calendar-picker-indicator */

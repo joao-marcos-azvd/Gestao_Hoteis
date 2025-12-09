@@ -1,4 +1,4 @@
-// Updated ListarQuartos.jsx with isolated card classes
+// Updated ListarQuartos.jsx with full menu including logout
 import { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import api from "../api/api";
@@ -15,6 +15,11 @@ export default function ListarQuartos() {
 
   const getLinkClass = ({ isActive }) =>
     isActive ? "link-item active" : "link-item";
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/login");
+  };
 
   async function load() {
     try {
@@ -59,20 +64,80 @@ export default function ListarQuartos() {
 
   return (
     <div className="dashboard-container">
+
+      {/* MENU LATERAL COMPLETO */}
       <aside className="sidebar">
         <img src={logo} alt="Logo do Hotel" className="logo-img" />
+
         <nav>
           <ul>
-            <li><NavLink to="/" className={getLinkClass}>Início</NavLink></li>
-            <li><NavLink to="/quartos" className={getLinkClass}>Quartos</NavLink></li>
-            <li><NavLink to="/quartos/cadastrar" className={getLinkClass}>Cadastrar Quarto</NavLink></li>
-            <li><NavLink to="/hospedes" className={getLinkClass}>Hóspedes</NavLink></li>
-            <li><NavLink to="/hospedes/cadastrar" className={getLinkClass}>Cadastrar Hóspede</NavLink></li>
-            
+            {/* Início */}
+            <li>
+              <NavLink to="/" className={getLinkClass}>
+                Início
+              </NavLink>
+            </li>
+
+            {/* Quartos */}
+            <li>
+              <NavLink to="/quartos" className={getLinkClass}>
+                Quartos
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink to="/quartos/cadastrar" className={getLinkClass}>
+                Cadastrar Quarto
+              </NavLink>
+            </li>
+
+            {/* Hóspedes */}
+            <li>
+              <NavLink to="/hospedes" className={getLinkClass}>
+                Hóspedes
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink to="/hospedes/cadastrar" className={getLinkClass}>
+                Cadastrar Hóspede
+              </NavLink>
+            </li>
+
+            {/* Reservas */}
+            <li>
+              <NavLink to="/reservas" className={getLinkClass}>
+                Reservas
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink to="/reservas/cadastrar" className={getLinkClass}>
+                Cadastrar Reserva
+              </NavLink>
+            </li>
+
+            {/* SAIR */}
+            <li>
+              <button
+                className="link-item logout-link"
+                onClick={handleLogout}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  width: "100%",
+                }}
+              >
+                Sair
+              </button>
+            </li>
           </ul>
         </nav>
       </aside>
 
+      {/* CONTEÚDO PRINCIPAL */}
       <main className="content">
         <h1>Quartos do Hotel</h1>
         <p className="subtitle">
@@ -88,7 +153,10 @@ export default function ListarQuartos() {
             />
           </div>
 
-          <button className="btn add" onClick={() => navigate("/quartos/cadastrar")}>
+          <button
+            className="btn add"
+            onClick={() => navigate("/quartos/cadastrar")}
+          >
             + NOVO QUARTO
           </button>
         </section>
@@ -99,7 +167,7 @@ export default function ListarQuartos() {
           ) : (
             filtered.map((quarto) => (
               <article key={quarto.id} className="quarto-card">
-                
+
                 {quarto.imagem_url && (
                   <div className="quarto-image-wrapper">
                     <img
@@ -143,6 +211,7 @@ export default function ListarQuartos() {
                         >
                           🗑️
                         </button>
+
                         <button
                           className="icon"
                           title="Editar"
@@ -152,6 +221,7 @@ export default function ListarQuartos() {
                         </button>
                       </div>
                     </div>
+
                   </div>
                 </div>
               </article>

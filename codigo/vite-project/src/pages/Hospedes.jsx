@@ -12,6 +12,12 @@ export default function Hospedes() {
 
   const getLinkClass = ({ isActive }) => (isActive ? "link-item active" : "link-item");
 
+  // ====== FUNÇÃO DE LOGOUT PADRÃO ======
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/login");
+  };
+
   async function load() {
     try {
       const res = await api.get("/hospede/hospedes");
@@ -46,16 +52,45 @@ export default function Hospedes() {
 
   return (
     <div className="dashboard-container">
+      {/* 1. MENU LATERAL - PADRÃO */}
       <aside className="sidebar">
         <img src={logo} alt="Logo do Hotel" className="logo-img" />
         <nav>
           <ul>
+            {/* Links que devem ter CORRESPONDÊNCIA EXATA (`end`) */}
             <li><NavLink to="/" className={getLinkClass} end>Início</NavLink></li>
             <li><NavLink to="/quartos" className={getLinkClass} end>Quartos</NavLink></li>
-            <li><NavLink to="/quartos/cadastrar" className={getLinkClass}>Cadastrar Quarto</NavLink></li>
-            <li><NavLink to="/hospedes" className={getLinkClass} end>Hóspedes</NavLink></li>
-            <li><NavLink to="/hospedes/cadastrar" className={getLinkClass}>Cadastrar Hóspede</NavLink></li>
             
+            {/* Links que são SUB-ROTAS (sem `end`) */}
+            <li><NavLink to="/quartos/cadastrar" className={getLinkClass}>Cadastrar Quarto</NavLink></li>
+            
+            {/* Hóspedes: Adicionamos `end` */}
+            <li><NavLink to="/hospedes" className={getLinkClass} end>Hóspedes</NavLink></li>
+            
+            {/* Cadastrar Hóspede: Agora, este será o único ativo em /hospedes/cadastrar */}
+            <li><NavLink to="/hospedes/cadastrar" className={getLinkClass}>Cadastrar Hóspede</NavLink></li>
+
+            {/* Reservas: Adicionamos `end` */}
+            <li><NavLink to="/reservas" className={getLinkClass} end>Reservas</NavLink></li>
+            
+            {/* Cadastrar Reserva: Agora, este será o único ativo em /reservas/cadastrar */}
+            <li><NavLink to="/reservas/cadastrar" className={getLinkClass}>Cadastrar Reserva</NavLink></li>
+
+            {/* Sair - mantém o mesmo estilo */}
+            <li>
+              <button
+                className="link-item logout-link"
+                onClick={handleLogout}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
+                Sair
+              </button>
+            </li>
           </ul>
         </nav>
       </aside>
@@ -68,7 +103,6 @@ export default function Hospedes() {
 
         <section className="controls">
           <div className="search search-icon">
-      
             <input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
@@ -93,7 +127,7 @@ export default function Hospedes() {
                 <th>Telefone</th>
                 <th>E-mail</th>
                 <th>Endereço</th>
-                <th >Ações</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>

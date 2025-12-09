@@ -1,8 +1,9 @@
 // src/pages/EditarQuarto.jsx
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, NavLink } from "react-router-dom";
 import api from "../api/api";
 import "./styles/cadastrarquartos.css";
+import "../pages/styles/home.css";
 import logo from "../assets/logomarca(1).png";
 
 export default function EditarQuarto() {
@@ -21,6 +22,15 @@ export default function EditarQuarto() {
 
   const [imagemFile, setImagemFile] = useState(null);
   const [preview, setPreview] = useState("");
+
+  // Função para aplicar a classe 'active' dinamicamente
+  const getLinkClass = ({ isActive }) => (isActive ? "link-item active" : "link-item");
+
+  // ====== FUNÇÃO DE LOGOUT PADRÃO ======
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/login");
+  };
 
   useEffect(() => {
     async function carregar() {
@@ -80,32 +90,79 @@ export default function EditarQuarto() {
 
   return (
     <div className="dashboard-container">
-      {/* MENU LATERAL */}
+      {/* 1. MENU LATERAL - PADRÃO */}
       <aside className="sidebar">
         <img src={logo} alt="Logo do Hotel" className="logo-img" />
         <nav>
           <ul>
+            {/* Links que devem ter CORRESPONDÊNCIA EXATA (`end`) */}
             <li>
-              <Link to="/" className="link-item">Início</Link>
+              <NavLink to="/" className={getLinkClass} end>
+                Início
+              </NavLink>
             </li>
+
             <li>
-              <Link to="/quartos" className="link-item">Quartos</Link>
+              <NavLink to="/quartos" className={getLinkClass} end>
+                Quartos
+              </NavLink>
             </li>
+
+            {/* Links que são SUB-ROTAS (sem `end`) */}
             <li>
-              <Link to="/quartos/cadastrar" className="link-item">Cadastrar Quarto</Link>
+              <NavLink to="/quartos/cadastrar" className={getLinkClass}>
+                Cadastrar Quarto
+              </NavLink>
             </li>
+
+            {/* Hóspedes: Adicionamos `end` */}
             <li>
-              <Link to="/hospedes" className="link-item">Hóspedes</Link>
+              <NavLink to="/hospedes" className={getLinkClass} end>
+                Hóspedes
+              </NavLink>
             </li>
+
+            {/* Cadastrar Hóspede: Agora, este será o único ativo em /hospedes/cadastrar */}
             <li>
-              <Link to="/hospedes/cadastrar" className="link-item">Cadastrar Hóspede</Link>
+              <NavLink to="/hospedes/cadastrar" className={getLinkClass}>
+                Cadastrar Hóspede
+              </NavLink>
             </li>
-            
+
+            {/* Reservas: Adicionamos `end` */}
+            <li>
+              <NavLink to="/reservas" className={getLinkClass} end>
+                Reservas
+              </NavLink>
+            </li>
+
+            {/* Cadastrar Reserva: Agora, este será o único ativo em /reservas/cadastrar */}
+            <li>
+              <NavLink to="/reservas/cadastrar" className={getLinkClass}>
+                Cadastrar Reserva
+              </NavLink>
+            </li>
+
+            {/* Sair - mantém o mesmo estilo */}
+            <li>
+              <button
+                className="link-item logout-link"
+                onClick={handleLogout}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
+                Sair
+              </button>
+            </li>
           </ul>
         </nav>
       </aside>
 
-      {/* CONTEÚDO PRINCIPAL */}
+      {/* 2. CONTEÚDO PRINCIPAL */}
       <main className="content">
         <header className="page-header">
           <h1>Editar Quarto</h1>
